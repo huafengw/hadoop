@@ -968,15 +968,12 @@ public class UserGroupInformation {
 
   /**Spawn a thread to do periodic renewals of kerberos credentials*/
   private void spawnAutoRenewalThreadForUserCreds() {
-    if (!isSecurityEnabled()) {
+    if (!isSecurityEnabled()
+      || user.getAuthenticationMethod() != AuthenticationMethod.KERBEROS
+      || !isKeytab) {
       return;
     }
     //spawn thread only if we have kerb credentials
-    if (user.getAuthenticationMethod() != AuthenticationMethod.KERBEROS ||
-      isKeytab) {
-      return;
-    }
-
     Thread t = new Thread(new Runnable() {
 
       @Override
