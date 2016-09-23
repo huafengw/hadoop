@@ -978,8 +978,7 @@ public class UserGroupInformation {
 
         @Override
         public void run() {
-          String cmd = conf.get("hadoop.kerberos.kinit.command",
-            "kinit");
+          String cmd = conf.get("hadoop.kerberos.kinit.command", "kinit");
           KerberosTicket tgt = getTGT();
           if (tgt == null) {
             return;
