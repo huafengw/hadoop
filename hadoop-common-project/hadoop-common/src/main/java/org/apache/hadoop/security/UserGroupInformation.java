@@ -954,7 +954,7 @@ public class UserGroupInformation {
         while (true) {
           try {
             long now = Time.now();
-            if(LOG.isDebugEnabled()) {
+            if (LOG.isDebugEnabled()) {
               LOG.debug("Current time is " + now);
               LOG.debug("Next refresh is " + nextRefresh);
             }
@@ -962,7 +962,7 @@ public class UserGroupInformation {
               Thread.sleep(nextRefresh - now);
             }
             Shell.execCommand(cmd, "-R");
-            if(LOG.isDebugEnabled()) {
+            if (LOG.isDebugEnabled()) {
               LOG.debug("renewed ticket");
             }
             reloginFromTicketCache();
