@@ -969,10 +969,11 @@ public class UserGroupInformation {
   /**Spawn a thread to do periodic renewals of kerberos credentials*/
   private void spawnAutoRenewalThreadForUserCreds() {
     if (!isSecurityEnabled()
-      || user.getAuthenticationMethod() != AuthenticationMethod.KERBEROS
-      || !isKeytab) {
+        || user.getAuthenticationMethod() != AuthenticationMethod.KERBEROS
+        || isKeytab) {
       return;
     }
+
     //spawn thread only if we have kerb credentials
     Thread t = new Thread(new Runnable() {
 
@@ -1002,7 +1003,7 @@ public class UserGroupInformation {
             tgt = getTGT();
             if (tgt == null) {
               LOG.warn("No TGT after renewal. Aborting renew thread for " +
-                getUserName());
+                  getUserName());
               return;
             }
             nextRefresh = Math.max(getRefreshTime(tgt),
@@ -1012,7 +1013,7 @@ public class UserGroupInformation {
             return;
           } catch (IOException ie) {
             LOG.warn("Exception encountered while running the" +
-              " renewal command. Aborting renew thread. " + ie);
+                " renewal command. Aborting renew thread. " + ie);
             return;
           }
         }
