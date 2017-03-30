@@ -17,6 +17,7 @@
  */
 package org.apache.hadoop.hdfs.server.namenode.ha;
 
+import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.security.UserGroupInformation;
 
@@ -24,6 +25,13 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+/**
+ * This interface aims to decouple the proxy creation implementation that used
+ * in {@link AbstractNNFailoverProxyProvider}. Client side can use
+ * {@link org.apache.hadoop.hdfs.protocol.ClientProtocol} to initialize the proxy
+ * while the server side can use NamenodeProtocals
+ */
+@InterfaceAudience.Private
 public interface HAProxyFactory<T> {
 
   T createProxy(Configuration conf, InetSocketAddress nnAddr, Class<T> xface,
