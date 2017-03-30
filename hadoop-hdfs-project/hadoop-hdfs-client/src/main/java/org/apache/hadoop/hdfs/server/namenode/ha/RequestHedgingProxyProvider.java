@@ -34,7 +34,6 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.ipc.RemoteException;
 import org.apache.hadoop.ipc.StandbyException;
 
-import com.google.common.annotations.VisibleForTesting;
 import org.apache.hadoop.io.retry.MultiException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -148,7 +147,7 @@ public class RequestHedgingProxyProvider<T> extends
   private volatile String toIgnore = null;
 
   public RequestHedgingProxyProvider(Configuration conf, URI uri,
-      Class<T> xface, ProxyFactory<T> proxyFactory) {
+      Class<T> xface, HAProxyFactory<T> proxyFactory) {
     super(conf, uri, xface, proxyFactory);
   }
 

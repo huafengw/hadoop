@@ -50,11 +50,11 @@ public class IPFailoverProxyProvider<T> extends
   private final Configuration conf;
   private final Class<T> xface;
   private final URI nameNodeUri;
-  private final ProxyFactory<T> factory;
+  private final HAProxyFactory<T> factory;
   private ProxyInfo<T> nnProxyInfo = null;
   
   public IPFailoverProxyProvider(Configuration conf, URI uri,
-      Class<T> xface, ProxyFactory<T> factory) {
+      Class<T> xface, HAProxyFactory<T> factory) {
     this.xface = xface;
     this.nameNodeUri = uri;
     this.factory = factory;

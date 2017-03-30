@@ -452,11 +452,11 @@ public class TestRequestHedgingProxyProvider {
     Mockito.verify(standby).getStats();
   }
 
-  private ProxyFactory<NamenodeProtocols> createFactory(
+  private HAProxyFactory<NamenodeProtocols> createFactory(
       NamenodeProtocols... protos) {
     final Iterator<NamenodeProtocols> iterator =
         Lists.newArrayList(protos).iterator();
-    return new ProxyFactory<NamenodeProtocols>() {
+    return new HAProxyFactory<NamenodeProtocols>() {
       @Override
       public NamenodeProtocols createProxy(Configuration conf,
           InetSocketAddress nnAddr, Class<NamenodeProtocols> xface,

@@ -56,10 +56,10 @@ public class ConfiguredFailoverProxyProvider<T> extends
   protected final Class<T> xface;
 
   private int currentProxyIndex = 0;
-  private final ProxyFactory<T> factory;
+  private final HAProxyFactory<T> factory;
 
   public ConfiguredFailoverProxyProvider(Configuration conf, URI uri,
-      Class<T> xface, ProxyFactory<T> factory) {
+      Class<T> xface, HAProxyFactory<T> factory) {
     this.xface = xface;
     this.conf = new Configuration(conf);
     int maxRetries = this.conf.getInt(
