@@ -29,7 +29,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * This interface aims to decouple the proxy creation implementation that used
  * in {@link AbstractNNFailoverProxyProvider}. Client side can use
  * {@link org.apache.hadoop.hdfs.protocol.ClientProtocol} to initialize the proxy
- * while the server side can use NamenodeProtocals
+ * while the server side can use NamenodeProtocols
  */
 @InterfaceAudience.Private
 public interface HAProxyFactory<T> {
