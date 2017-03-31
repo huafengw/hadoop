@@ -358,7 +358,7 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-For hadoop-hdfs-project/hadoop-hdfs-native-client/src/main/native/fuse-dfs/util/tree.h
+For hadoop-hdfs-project/hadoop-hdfs-client/src/main/native/fuse-dfs/util/tree.h
 ---------------------------------------------------------------------
 Copyright 2002 Niels Provos <provos@citi.umich.edu>
 All rights reserved.

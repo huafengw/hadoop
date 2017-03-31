@@ -20,8 +20,8 @@ if [ "$HADOOP_HOME" = "" ]; then
   echo "HADOOP_HOME is empty. Set it to the root directory of Hadoop source code"
   exit 1
 fi
-export FUSEDFS_PATH="$HADOOP_HOME/hadoop-hdfs-project/hadoop-hdfs-native-client/target/main/native/fuse-dfs"
-export LIBHDFS_PATH="$HADOOP_HOME/hadoop-hdfs-project/hadoop-hdfs-native-client/target/usr/local/lib"
+export FUSEDFS_PATH="$HADOOP_HOME/hadoop-hdfs-project/hadoop-hdfs-client/target/main/native/fuse-dfs"
+export LIBHDFS_PATH="$HADOOP_HOME/hadoop-hdfs-project/hadoop-hdfs-client/target/usr/local/lib"
 
 if [ "$OS_ARCH" = "" ]; then
 export OS_ARCH=amd64
