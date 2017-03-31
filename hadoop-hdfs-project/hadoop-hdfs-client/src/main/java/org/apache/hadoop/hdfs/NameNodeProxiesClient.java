@@ -28,7 +28,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.hadoop.classification.InterfaceAudience;
-import org.apache.hadoop.hdfs.server.namenode.ha.HAProxyFactoryClient;
+import org.apache.hadoop.hdfs.server.namenode.ha.ClientHAProxyFactory;
 import org.apache.hadoop.hdfs.server.namenode.ha.HAProxyFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -209,17 +209,16 @@ public class NameNodeProxiesClient {
     }
   }
 
+  /** Creates the Failover proxy provider instance*/
   @VisibleForTesting
   public static <T> AbstractNNFailoverProxyProvider<T> createFailoverProxyProvider(
       Configuration conf, URI nameNodeUri, Class<T> xface, boolean checkPort,
       AtomicBoolean fallbackToSimpleAuth) throws IOException {
     return createFailoverProxyProvider(conf, nameNodeUri, xface, checkPort,
-      fallbackToSimpleAuth, new HAProxyFactoryClient<T>());
+      fallbackToSimpleAuth, new ClientHAProxyFactory<T>());
   }
 
-  /** Creates the Failover proxy provider instance*/
-  @VisibleForTesting
-  public static <T> AbstractNNFailoverProxyProvider<T> createFailoverProxyProvider(
+  protected static <T> AbstractNNFailoverProxyProvider<T> createFailoverProxyProvider(
       Configuration conf, URI nameNodeUri, Class<T> xface, boolean checkPort,
       AtomicBoolean fallbackToSimpleAuth, HAProxyFactory<T> proxyFactory)
       throws IOException {

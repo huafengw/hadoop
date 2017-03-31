@@ -25,7 +25,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class HAProxyFactoryClient<T> implements HAProxyFactory<T> {
+public class ClientHAProxyFactory<T> implements HAProxyFactory<T> {
   @Override
   @SuppressWarnings("unchecked")
   public T createProxy(Configuration conf, InetSocketAddress nnAddr,
