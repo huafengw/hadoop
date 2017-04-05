@@ -67,12 +67,12 @@ public class TestRequestHedgingProxyProvider {
     conf = new Configuration();
     conf.set(HdfsClientConfigKeys.DFS_NAMESERVICES, ns);
     conf.set(
-      HdfsClientConfigKeys.DFS_HA_NAMENODES_KEY_PREFIX + "." + ns, "nn1,nn2");
+        HdfsClientConfigKeys.DFS_HA_NAMENODES_KEY_PREFIX + "." + ns, "nn1,nn2");
     conf.set(
-      HdfsClientConfigKeys.DFS_NAMENODE_RPC_ADDRESS_KEY + "." + ns + ".nn1",
+        HdfsClientConfigKeys.DFS_NAMENODE_RPC_ADDRESS_KEY + "." + ns + ".nn1",
         "machine1.foo.bar:9820");
     conf.set(
-      HdfsClientConfigKeys.DFS_NAMENODE_RPC_ADDRESS_KEY + "." + ns + ".nn2",
+        HdfsClientConfigKeys.DFS_NAMENODE_RPC_ADDRESS_KEY + "." + ns + ".nn2",
         "machine2.foo.bar:9820");
   }
 

@@ -233,7 +233,8 @@ public class NameNodeProxiesClient {
       }
       // Create a proxy provider instance.
       Constructor<FailoverProxyProvider<T>> ctor = failoverProxyProviderClass
-          .getConstructor(Configuration.class, URI.class, Class.class, HAProxyFactory.class);
+          .getConstructor(Configuration.class, URI.class,
+              Class.class, HAProxyFactory.class);
       FailoverProxyProvider<T> provider = ctor.newInstance(conf, nameNodeUri,
           xface, proxyFactory);
 

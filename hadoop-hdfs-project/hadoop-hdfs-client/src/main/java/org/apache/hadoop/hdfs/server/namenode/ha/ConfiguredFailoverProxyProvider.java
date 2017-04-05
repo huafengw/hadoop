@@ -45,10 +45,10 @@ import org.slf4j.LoggerFactory;
  */
 public class ConfiguredFailoverProxyProvider<T> extends
     AbstractNNFailoverProxyProvider<T> {
-  
+
   private static final Logger LOG =
       LoggerFactory.getLogger(ConfiguredFailoverProxyProvider.class);
-  
+
   protected final Configuration conf;
   protected final List<AddressRpcProxyPair<T>> proxies =
       new ArrayList<AddressRpcProxyPair<T>>();
@@ -68,7 +68,7 @@ public class ConfiguredFailoverProxyProvider<T> extends
     this.conf.setInt(
         CommonConfigurationKeysPublic.IPC_CLIENT_CONNECT_MAX_RETRIES_KEY,
         maxRetries);
-    
+
     int maxRetriesOnSocketTimeouts = this.conf.getInt(
         HdfsClientConfigKeys.Failover.CONNECTION_RETRIES_ON_SOCKET_TIMEOUTS_KEY,
         HdfsClientConfigKeys.Failover.CONNECTION_RETRIES_ON_SOCKET_TIMEOUTS_DEFAULT);
@@ -79,16 +79,16 @@ public class ConfiguredFailoverProxyProvider<T> extends
 
     try {
       ugi = UserGroupInformation.getCurrentUser();
-      
+
       Map<String, Map<String, InetSocketAddress>> map =
-        DFSUtilClient.getHaNnRpcAddresses(conf);
+          DFSUtilClient.getHaNnRpcAddresses(conf);
       Map<String, InetSocketAddress> addressesInNN = map.get(uri.getHost());
-      
+
       if (addressesInNN == null || addressesInNN.size() == 0) {
         throw new RuntimeException("Could not find any configured addresses " +
             "for URI " + uri);
       }
-      
+
       Collection<InetSocketAddress> addressesOfNns = addressesInNN.values();
       for (InetSocketAddress address : addressesOfNns) {
         proxies.add(new AddressRpcProxyPair<T>(address));
@@ -110,7 +110,7 @@ public class ConfiguredFailoverProxyProvider<T> extends
       throw new RuntimeException(e);
     }
   }
-    
+
   @Override
   public Class<T> getInterface() {
     return xface;
@@ -150,7 +150,7 @@ public class ConfiguredFailoverProxyProvider<T> extends
   private static class AddressRpcProxyPair<T> {
     public final InetSocketAddress address;
     public T namenode;
-    
+
     public AddressRpcProxyPair(InetSocketAddress address) {
       this.address = address;
     }

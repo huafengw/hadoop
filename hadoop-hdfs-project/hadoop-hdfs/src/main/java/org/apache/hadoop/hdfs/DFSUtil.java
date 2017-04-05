@@ -680,7 +680,7 @@ public class DFSUtil {
   
   public static String nnAddressesAsString(Configuration conf) {
     Map<String, Map<String, InetSocketAddress>> addresses =
-      DFSUtilClient.getHaNnRpcAddresses(conf);
+        DFSUtilClient.getHaNnRpcAddresses(conf);
     return addressMapToString(addresses);
   }
 

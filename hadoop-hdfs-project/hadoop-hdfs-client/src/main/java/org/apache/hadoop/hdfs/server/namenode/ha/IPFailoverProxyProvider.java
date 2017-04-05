@@ -36,7 +36,7 @@ import org.apache.hadoop.security.UserGroupInformation;
  * clients can consistently reach only one node at a time.
  *
  * Clients with a live connection will likely get connection reset after an
- * IP failover. This case will be handled by the 
+ * IP failover. This case will be handled by the
  * FailoverOnNetworkExceptionRetry retry policy. I.e. if the call is
  * not idempotent, it won't get retried.
  *
@@ -52,7 +52,7 @@ public class IPFailoverProxyProvider<T> extends
   private final URI nameNodeUri;
   private final HAProxyFactory<T> factory;
   private ProxyInfo<T> nnProxyInfo = null;
-  
+
   public IPFailoverProxyProvider(Configuration conf, URI uri,
       Class<T> xface, HAProxyFactory<T> factory) {
     this.xface = xface;
@@ -66,7 +66,7 @@ public class IPFailoverProxyProvider<T> extends
     this.conf.setInt(
         CommonConfigurationKeysPublic.IPC_CLIENT_CONNECT_MAX_RETRIES_KEY,
         maxRetries);
-    
+
     int maxRetriesOnSocketTimeouts = this.conf.getInt(
         HdfsClientConfigKeys.Failover.CONNECTION_RETRIES_ON_SOCKET_TIMEOUTS_KEY,
         HdfsClientConfigKeys.Failover.CONNECTION_RETRIES_ON_SOCKET_TIMEOUTS_DEFAULT);
@@ -74,7 +74,7 @@ public class IPFailoverProxyProvider<T> extends
         CommonConfigurationKeysPublic.IPC_CLIENT_CONNECT_MAX_RETRIES_ON_SOCKET_TIMEOUTS_KEY,
         maxRetriesOnSocketTimeouts);
   }
-    
+
   @Override
   public Class<T> getInterface() {
     return xface;

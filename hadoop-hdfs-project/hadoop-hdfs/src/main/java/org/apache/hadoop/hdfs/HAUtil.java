@@ -83,7 +83,7 @@ public class HAUtil {
    */
   public static boolean isHAEnabled(Configuration conf, String nsId) {
     Map<String, Map<String, InetSocketAddress>> addresses =
-      DFSUtilClient.getHaNnRpcAddresses(conf);
+        DFSUtilClient.getHaNnRpcAddresses(conf);
     if (addresses == null) return false;
     Map<String, InetSocketAddress> nnMap = addresses.get(nsId);
     return nnMap != null && nnMap.size() > 1;

@@ -41,7 +41,7 @@ public class HAUtilClient {
   private static final Logger LOG = LoggerFactory.getLogger(HAUtilClient.class);
 
   private static final DelegationTokenSelector tokenSelector =
-    new DelegationTokenSelector();
+      new DelegationTokenSelector();
 
   /**
    * @return true if the given nameNodeUri appears to be a logical URI.
@@ -120,30 +120,30 @@ public class HAUtilClient {
       Collection<InetSocketAddress> nnAddrs) {
     // this cloning logic is only used by hdfs
     Text haService = HAUtilClient.buildTokenServiceForLogicalUri(haUri,
-      HdfsConstants.HDFS_URI_SCHEME);
+        HdfsConstants.HDFS_URI_SCHEME);
     Token<DelegationTokenIdentifier> haToken =
-      tokenSelector.selectToken(haService, ugi.getTokens());
+        tokenSelector.selectToken(haService, ugi.getTokens());
     if (haToken != null) {
       for (InetSocketAddress singleNNAddr : nnAddrs) {
         // this is a minor hack to prevent physical HA tokens from being
         // exposed to the user via UGI.getCredentials(), otherwise these
         // cloned tokens may be inadvertently propagated to jobs
         Token<DelegationTokenIdentifier> specificToken =
-          haToken.privateClone(buildTokenService(singleNNAddr));
+            haToken.privateClone(buildTokenService(singleNNAddr));
         Text alias = new Text(
-          HAUtilClient.buildTokenServicePrefixForLogicalUri(
-            HdfsConstants.HDFS_URI_SCHEME)
-            + "//" + specificToken.getService());
+            HAUtilClient.buildTokenServicePrefixForLogicalUri(
+                HdfsConstants.HDFS_URI_SCHEME)
+                + "//" + specificToken.getService());
         ugi.addToken(alias, specificToken);
         if (LOG.isDebugEnabled()) {
           LOG.debug("Mapped HA service delegation token for logical URI " +
-            haUri + " to namenode " + singleNNAddr);
+              haUri + " to namenode " + singleNNAddr);
         }
       }
     } else {
       if (LOG.isDebugEnabled()) {
         LOG.debug("No HA service delegation token found for logical URI " +
-          haUri);
+            haUri);
       }
     }
   }
