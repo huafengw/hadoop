@@ -20,18 +20,23 @@ package org.apache.hadoop.hdfs.protocol;
 public class AddingECPolicyResponse {
   private boolean succeed;
   private ErasureCodingPolicy policy;
-  private IllegalECPolicyException exception;
+  private String errorMsg;
 
-  public AddingECPolicyResponse(ErasureCodingPolicy policy, boolean succeed) {
+  public AddingECPolicyResponse(ErasureCodingPolicy policy) {
     this.policy = policy;
-    this.succeed = succeed;
+    this.succeed = true;
+  }
+
+  public AddingECPolicyResponse(ErasureCodingPolicy policy,
+      String errorMsg) {
+    this.policy = policy;
+    this.errorMsg = errorMsg;
+    this.succeed = false;
   }
 
   public AddingECPolicyResponse(ErasureCodingPolicy policy,
       IllegalECPolicyException e) {
-    this.policy = policy;
-    this.exception = e;
-    this.succeed = false;
+    this(policy, e.getMessage());
   }
 
   public boolean isSucceed() {
@@ -42,7 +47,7 @@ public class AddingECPolicyResponse {
     return policy;
   }
 
-  public IllegalECPolicyException getException() {
-    return exception;
+  public String getErrorMsg() {
+    return errorMsg;
   }
 }

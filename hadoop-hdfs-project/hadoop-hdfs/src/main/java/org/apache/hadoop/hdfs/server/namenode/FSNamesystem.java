@@ -6812,7 +6812,7 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
     for (ErasureCodingPolicy policy : policies) {
       try {
         FSDirErasureCodingOp.addErasureCodePolicy(this, policy);
-        responses.add(new AddingECPolicyResponse(policy, true));
+        responses.add(new AddingECPolicyResponse(policy));
       } catch (IllegalECPolicyException e) {
         responses.add(new AddingECPolicyResponse(policy, e));
       }

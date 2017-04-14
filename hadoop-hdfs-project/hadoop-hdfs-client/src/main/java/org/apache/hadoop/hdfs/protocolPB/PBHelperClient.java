@@ -2669,7 +2669,7 @@ public class PBHelperClient {
         .setPolicy(convertErasureCodingPolicy(response.getPolicy()))
         .setSucceed(response.isSucceed());
     if (!response.isSucceed()) {
-      builder.setErrorMsg(response.getException().toString());
+      builder.setErrorMsg(response.getErrorMsg());
     }
     return builder.build();
   }
@@ -2687,7 +2687,7 @@ public class PBHelperClient {
       AddingECPolicyResponseProto proto) {
     ErasureCodingPolicy policy = convertErasureCodingPolicy(proto.getPolicy());
     if (proto.getSucceed()) {
-      return new AddingECPolicyResponse(policy, true);
+      return new AddingECPolicyResponse(policy);
     } else {
       return new AddingECPolicyResponse(policy,
           new IllegalECPolicyException(proto.getErrorMsg()));
