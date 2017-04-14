@@ -88,7 +88,6 @@ import static org.apache.hadoop.hdfs.DFSConfigKeys.DFS_PERMISSIONS_SUPERUSERGROU
 import static org.apache.hadoop.hdfs.DFSConfigKeys.DFS_REPLICATION_DEFAULT;
 import static org.apache.hadoop.hdfs.DFSConfigKeys.DFS_REPLICATION_KEY;
 import static org.apache.hadoop.hdfs.server.namenode.FSDirStatAndListingOp.*;
-
 import org.apache.hadoop.hdfs.server.protocol.SlowDiskReports;
 import static org.apache.hadoop.util.Time.now;
 import static org.apache.hadoop.util.Time.monotonicNow;
@@ -4832,10 +4831,10 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
         String[] storageIDs = blocks[i].getStorageIDs();
         for (int j = 0; j < nodes.length; j++) {
           NameNode.stateChangeLog.info("*DIR* reportBadBlocks for block: {} on"
-            + " datanode: {}", blk, nodes[j].getXferAddr());
+              + " datanode: {}", blk, nodes[j].getXferAddr());
           blockManager.findAndMarkBlockAsCorrupt(blk, nodes[j],
-            storageIDs == null ? null: storageIDs[j],
-            "client machine reported it");
+              storageIDs == null ? null: storageIDs[j],
+              "client machine reported it");
         }
       }
     } finally {

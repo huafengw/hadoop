@@ -2263,8 +2263,8 @@ public class NameNodeRpcServer implements NamenodeProtocols {
   }
 
   @Override
-  public AddingECPolicyResponse[] addErasureCodingPolicies(ErasureCodingPolicy[] policies)
-    throws IOException {
+  public AddingECPolicyResponse[] addErasureCodingPolicies(
+      ErasureCodingPolicy[] policies) throws IOException {
     checkNNStartup();
     return namesystem.addECPolicies(policies);
   }
