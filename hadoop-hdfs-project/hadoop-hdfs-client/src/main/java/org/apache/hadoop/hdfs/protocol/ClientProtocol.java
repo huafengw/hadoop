@@ -18,6 +18,7 @@
 package org.apache.hadoop.hdfs.protocol;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.EnumSet;
 import java.util.List;
 
@@ -1519,6 +1520,15 @@ public interface ClientProtocol {
   @AtMostOnce
   void setErasureCodingPolicy(String src, String ecPolicyName)
       throws IOException;
+
+  /**
+   * Add erasure coding policies to Namenode
+   *
+   * @throws IOException
+   */
+  @AtMostOnce
+  AddingECPolicyResponse[] addErasureCodingPolicies(
+      ErasureCodingPolicy[] policies) throws IOException;
 
   /**
    * Get the erasure coding policies loaded in Namenode

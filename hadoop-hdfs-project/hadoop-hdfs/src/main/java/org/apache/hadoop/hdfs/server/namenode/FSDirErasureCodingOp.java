@@ -37,6 +37,7 @@ import org.apache.hadoop.fs.XAttrSetFlag;
 import org.apache.hadoop.fs.permission.FsAction;
 import org.apache.hadoop.hdfs.DFSConfigKeys;
 import org.apache.hadoop.hdfs.XAttrHelper;
+import org.apache.hadoop.hdfs.protocol.IllegalECPolicyException;
 import org.apache.hadoop.hdfs.protocol.SystemErasureCodingPolicies;
 import org.apache.hadoop.hdfs.protocol.ErasureCodingPolicy;
 import org.apache.hadoop.hdfs.protocol.HdfsFileStatus;
@@ -208,6 +209,12 @@ final class FSDirErasureCodingOp {
       fsn.getEditLog().logRemoveXAttrs(src, xAttrs, logRetryCache);
     }
     return fsd.getAuditFileInfo(iip);
+  }
+
+  static void addErasureCodePolicy(final FSNamesystem fsn,
+      ErasureCodingPolicy policy) throws IllegalECPolicyException {
+    Preconditions.checkArgument(policy != null);
+    fsn.getErasureCodingPolicyManager().addPolicy(policy);
   }
 
   private static List<XAttr> removeErasureCodingPolicyXAttr(

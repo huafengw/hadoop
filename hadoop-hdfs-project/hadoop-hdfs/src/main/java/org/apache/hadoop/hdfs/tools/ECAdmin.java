@@ -22,6 +22,7 @@ import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hdfs.DFSConfigKeys;
 import org.apache.hadoop.hdfs.DistributedFileSystem;
+import org.apache.hadoop.hdfs.protocol.AddingECPolicyResponse;
 import org.apache.hadoop.hdfs.protocol.ErasureCodingPolicy;
 import org.apache.hadoop.tools.TableListing;
 import org.apache.hadoop.util.StringUtils;
@@ -127,6 +128,48 @@ public class ECAdmin extends Configured implements Tool {
             }
           }
         }
+      } catch (IOException e) {
+        System.err.println(AdminHelper.prettifyException(e));
+        return 2;
+      }
+      return 0;
+    }
+  }
+
+  /** Command to add a set of erasure coding policies. */
+  private static class AddECPoliciesCommand
+      implements AdminHelper.Command {
+    @Override
+    public String getName() {
+      return "-addPolicies";
+    }
+
+    @Override
+    public String getShortUsage() {
+      return "[" + getName() + "]\n";
+    }
+
+    @Override
+    public String getLongUsage() {
+      return getShortUsage() + "\n" +
+        "Add a list of erasure coding policies.\n" +
+        "Policies can be enabled on the NameNode via `" +
+        DFSConfigKeys.DFS_NAMENODE_EC_POLICIES_ENABLED_KEY + "`.\n";
+    }
+
+    @Override
+    public int run(Configuration conf, List<String> args) throws IOException {
+      if (args.size() > 0) {
+        System.err.println(getName() + ": Too many arguments");
+        return 1;
+      }
+
+      final DistributedFileSystem dfs = AdminHelper.getDFS(conf);
+      try {
+        //Todo
+        ErasureCodingPolicy[] policies = null;
+        AddingECPolicyResponse[] responses =
+            dfs.addErasureCodingPolicies(policies);
       } catch (IOException e) {
         System.err.println(AdminHelper.prettifyException(e));
         return 2;
@@ -301,6 +344,7 @@ public class ECAdmin extends Configured implements Tool {
 
   private static final AdminHelper.Command[] COMMANDS = {
       new ListECPoliciesCommand(),
+      new AddECPoliciesCommand(),
       new GetECPolicyCommand(),
       new SetECPolicyCommand(),
       new UnsetECPolicyCommand()

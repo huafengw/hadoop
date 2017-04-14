@@ -20,6 +20,7 @@ package org.apache.hadoop.hdfs.server.namenode;
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hdfs.DFSConfigKeys;
+import org.apache.hadoop.hdfs.protocol.IllegalECPolicyException;
 import org.apache.hadoop.hdfs.protocol.SystemErasureCodingPolicies;
 import org.apache.hadoop.hdfs.protocol.ErasureCodingPolicy;
 import org.apache.hadoop.hdfs.protocol.HdfsConstants;
@@ -50,7 +51,7 @@ public final class ErasureCodingPolicyManager {
    * All enabled policies maintained in NN memory for fast querying,
    * identified and sorted by its name.
    */
-  private final Map<String, ErasureCodingPolicy> enabledPoliciesByName;
+  private Map<String, ErasureCodingPolicy> enabledPoliciesByName;
 
   ErasureCodingPolicyManager(Configuration conf) {
     // Populate the list of enabled policies from configuration
@@ -125,5 +126,13 @@ public final class ErasureCodingPolicyManager {
   public void clear() {
     // TODO: we should only clear policies loaded from NN metadata.
     // This is a placeholder for HDFS-7337.
+  }
+
+  public synchronized void addPolicy(ErasureCodingPolicy policy)
+      throws IllegalECPolicyException {
+    if (enabledPoliciesByName.containsKey(policy.getName())) {
+      throw new IllegalECPolicyException("The policy name already exists");
+    }
+    this.enabledPoliciesByName.put(policy.getName(), policy);
   }
 }
