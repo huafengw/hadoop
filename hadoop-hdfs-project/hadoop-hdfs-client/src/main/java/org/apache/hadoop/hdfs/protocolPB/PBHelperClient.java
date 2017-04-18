@@ -2725,8 +2725,7 @@ public class PBHelperClient {
     if (proto.getSucceed()) {
       return new AddingECPolicyResponse(policy);
     } else {
-      return new AddingECPolicyResponse(policy,
-          new IllegalECPolicyException(proto.getErrorMsg()));
+      return new AddingECPolicyResponse(policy, proto.getErrorMsg());
     }
   }
 

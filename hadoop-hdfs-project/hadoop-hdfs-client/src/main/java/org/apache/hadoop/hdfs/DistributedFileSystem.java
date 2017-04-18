@@ -2534,6 +2534,8 @@ public class DistributedFileSystem extends FileSystem {
   /**
    * Add Erasure coding policies to HDFS.
    *
+   * @param policies The user defined ec policy list to add.
+   * @return Return the response list of adding operations.
    * @throws IOException
    */
   public AddingECPolicyResponse[] addErasureCodingPolicies(

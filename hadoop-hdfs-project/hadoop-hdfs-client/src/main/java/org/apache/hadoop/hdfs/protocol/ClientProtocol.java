@@ -1522,8 +1522,10 @@ public interface ClientProtocol {
       throws IOException;
 
   /**
-   * Add erasure coding policies to Namenode
+   * Add Erasure coding policies to HDFS.
    *
+   * @param policies The user defined ec policy list to add.
+   * @return Return the response list of adding operations.
    * @throws IOException
    */
   @AtMostOnce
