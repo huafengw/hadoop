@@ -34,7 +34,7 @@ public final class ErasureCodingPolicy {
   private final String name;
   private final ECSchema schema;
   private final int cellSize;
-  private final byte id;
+  private byte id;
 
   public ErasureCodingPolicy(String name, ECSchema schema,
       int cellSize, byte id) {
@@ -84,6 +84,10 @@ public final class ErasureCodingPolicy {
 
   public byte getId() {
     return id;
+  }
+
+  public void setId(byte id) {
+    this.id = id;
   }
 
   @Override

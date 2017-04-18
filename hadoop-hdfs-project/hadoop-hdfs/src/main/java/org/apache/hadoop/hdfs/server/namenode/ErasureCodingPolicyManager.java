@@ -76,7 +76,7 @@ public final class ErasureCodingPolicyManager {
 
   private ErasureCodingPolicyManager() {}
 
-  protected void init(Configuration conf) {
+  public void init(Configuration conf) {
     // Populate the list of enabled policies from configuration
     final String[] policyNames = conf.getTrimmedStrings(
         DFSConfigKeys.DFS_NAMENODE_EC_POLICIES_ENABLED_KEY,
@@ -181,7 +181,7 @@ public final class ErasureCodingPolicyManager {
   /**
    * Clear and clean up.
    */
-  protected void clear() {
+  public void clear() {
     // TODO: we should only clear policies loaded from NN metadata.
     // This is a placeholder for HDFS-7337.
   }
@@ -192,15 +192,14 @@ public final class ErasureCodingPolicyManager {
     if (enabledPoliciesByName.containsKey(policy.getName())) {
       throw new IllegalECPolicyException("The policy name already exists");
     }
-    ErasureCodingPolicy updated = this.assignPolicyID(policy);
-    this.userPoliciesByName.put(updated.getName(), updated);
-    this.userPoliciesByID.put(updated.getId(), updated);
+    policy.setId(getNextAvailablePolicyID());
+    this.userPoliciesByName.put(policy.getName(), policy);
+    this.userPoliciesByID.put(policy.getId(), policy);
   }
 
-  private ErasureCodingPolicy assignPolicyID(ErasureCodingPolicy policy) {
+  private byte getNextAvailablePolicyID() {
     byte currentId = this.userPoliciesByID.keySet().stream()
       .max(Byte::compareTo).orElse(USER_DEFINED_POLICY_START_ID);
-    return new ErasureCodingPolicy(policy.getName(), policy.getSchema(),
-      policy.getCellSize(), (byte) (currentId + 1));
+    return (byte) (currentId + 1) ;
   }
 }

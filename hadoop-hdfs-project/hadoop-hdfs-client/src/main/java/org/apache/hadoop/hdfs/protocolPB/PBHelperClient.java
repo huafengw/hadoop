@@ -2666,15 +2666,6 @@ public class PBHelperClient {
     return policy;
   }
 
-  public static List<ErasureCodingPolicy> convertErasureCodingPolicyProtos(
-      List<ErasureCodingPolicyProto> protos) {
-    List<ErasureCodingPolicy> ret = new ArrayList<>();
-    for (ErasureCodingPolicyProto proto : protos) {
-      ret.add(convertErasureCodingPolicy(proto));
-    }
-    return ret;
-  }
-
   public static ErasureCodingPolicyProto convertErasureCodingPolicy(
       ErasureCodingPolicy policy) {
     ErasureCodingPolicyProto.Builder builder = ErasureCodingPolicyProto
@@ -2689,15 +2680,6 @@ public class PBHelperClient {
     return builder.build();
   }
 
-  public static List<ErasureCodingPolicyProto> convertErasureCodingPolicies(
-      List<ErasureCodingPolicy> policies) {
-    List<ErasureCodingPolicyProto> ret = new ArrayList<>();
-    for (ErasureCodingPolicy policy : policies) {
-      ret.add(convertErasureCodingPolicy(policy));
-    }
-    return ret;
-  }
-
   public static AddingECPolicyResponseProto convertAddingECPolicyResponse(
       AddingECPolicyResponse response) {
     AddingECPolicyResponseProto.Builder builder =
@@ -2710,16 +2692,7 @@ public class PBHelperClient {
     return builder.build();
   }
 
-  public static AddingECPolicyResponse[] convertAddingECPolicyReponseProtos(
-      Collection<AddingECPolicyResponseProto> protos) {
-    List<AddingECPolicyResponse> ret = new ArrayList<>();
-    for (AddingECPolicyResponseProto proto : protos) {
-      ret.add(convertAddingECPolicyResponseProto(proto));
-    }
-    return ret.toArray(new AddingECPolicyResponse[0]);
-  }
-
-  public static AddingECPolicyResponse convertAddingECPolicyResponseProto(
+  public static AddingECPolicyResponse convertAddingECPolicyResponse(
       AddingECPolicyResponseProto proto) {
     ErasureCodingPolicy policy = convertErasureCodingPolicy(proto.getPolicy());
     if (proto.getSucceed()) {
@@ -2727,15 +2700,6 @@ public class PBHelperClient {
     } else {
       return new AddingECPolicyResponse(policy, proto.getErrorMsg());
     }
-  }
-
-  public static List<AddingECPolicyResponseProto> convertAddingECPolicyReponses(
-      AddingECPolicyResponse[] responses) {
-    List<AddingECPolicyResponseProto> ret = new ArrayList<>();
-    for (AddingECPolicyResponse response : responses) {
-      ret.add(convertAddingECPolicyResponse(response));
-    }
-    return ret;
   }
 
   public static HdfsProtos.DatanodeInfosProto convertToProto(

@@ -26,6 +26,7 @@ import java.util.List;
 import com.google.common.collect.Lists;
 
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
@@ -1630,16 +1631,19 @@ public class ClientNamenodeProtocolTranslatorPB implements
   @Override
   public AddingECPolicyResponse[] addErasureCodingPolicies(
       ErasureCodingPolicy[] policies) throws IOException {
-    List<ErasureCodingPolicyProto> protos = PBHelperClient.
-        convertErasureCodingPolicies(Arrays.asList(policies));
+    List<ErasureCodingPolicyProto> protos = Arrays.stream(policies)
+        .map(PBHelperClient::convertErasureCodingPolicy)
+        .collect(Collectors.toList());
     AddErasureCodingPoliciesRequestProto req =
         AddErasureCodingPoliciesRequestProto.newBuilder()
         .addAllEcPolicies(protos).build();
     try {
       AddErasureCodingPoliciesResponseProto rep = rpcProxy
-        .addErasureCodingPolicies(null, req);
-      return PBHelperClient.
-          convertAddingECPolicyReponseProtos(rep.getResponsesList());
+          .addErasureCodingPolicies(null, req);
+      AddingECPolicyResponse[] responses = rep.getResponsesList().stream()
+          .map(PBHelperClient::convertAddingECPolicyResponse)
+          .toArray(AddingECPolicyResponse[]::new);
+      return responses;
     }  catch (ServiceException e) {
       throw ProtobufHelper.getRemoteException(e);
     }

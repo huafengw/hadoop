@@ -50,4 +50,21 @@ public class AddingECPolicyResponse {
   public String getErrorMsg() {
     return errorMsg;
   }
+
+  @Override
+  public boolean equals(Object o) {
+    if (o == null) {
+      return false;
+    }
+    if (o == this) {
+      return true;
+    }
+    if (o.getClass() != getClass()) {
+      return false;
+    }
+    AddingECPolicyResponse response = (AddingECPolicyResponse) o;
+    return succeed == response.isSucceed() &&
+        policy.equals(response.getPolicy()) &&
+        (succeed || errorMsg.equals(response.getErrorMsg()));
+  }
 }

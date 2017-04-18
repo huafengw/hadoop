@@ -19,10 +19,13 @@ package org.apache.hadoop.hdfs.protocolPB;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.stream.Collectors;
 
+import com.sun.tools.internal.xjc.outline.PackageOutline;
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
 import org.apache.hadoop.fs.BatchedRemoteIterator.BatchedEntries;
@@ -223,6 +226,7 @@ import org.apache.hadoop.hdfs.protocol.proto.ErasureCodingProtos.SetErasureCodin
 import org.apache.hadoop.hdfs.protocol.proto.ErasureCodingProtos.SetErasureCodingPolicyResponseProto;
 import org.apache.hadoop.hdfs.protocol.proto.ErasureCodingProtos.UnsetErasureCodingPolicyRequestProto;
 import org.apache.hadoop.hdfs.protocol.proto.ErasureCodingProtos.UnsetErasureCodingPolicyResponseProto;
+import org.apache.hadoop.hdfs.protocol.proto.HdfsProtos;
 import org.apache.hadoop.hdfs.protocol.proto.HdfsProtos.BlockStoragePolicyProto;
 import org.apache.hadoop.hdfs.protocol.proto.HdfsProtos.DatanodeIDProto;
 import org.apache.hadoop.hdfs.protocol.proto.HdfsProtos.DatanodeInfoProto;
@@ -1623,14 +1627,18 @@ public class ClientNamenodeProtocolServerSideTranslatorPB implements
       RpcController controller, AddErasureCodingPoliciesRequestProto request)
       throws ServiceException {
     try {
-      List<ErasureCodingPolicy> policies = PBHelperClient
-          .convertErasureCodingPolicyProtos(request.getEcPoliciesList());
+      ErasureCodingPolicy[] policies = request.getEcPoliciesList().stream()
+          .map(PBHelperClient::convertErasureCodingPolicy)
+          .toArray(ErasureCodingPolicy[]::new);
       AddingECPolicyResponse[] result = server
-          .addErasureCodingPolicies(policies.toArray(
-            new ErasureCodingPolicy[0]));
+          .addErasureCodingPolicies(policies);
+
+      List<HdfsProtos.AddingECPolicyResponseProto> responseProtos =
+          Arrays.stream(result).map(PBHelperClient::convertAddingECPolicyResponse)
+          .collect(Collectors.toList());
       AddErasureCodingPoliciesResponseProto response =
-          AddErasureCodingPoliciesResponseProto.newBuilder().addAllResponses(
-            PBHelperClient.convertAddingECPolicyReponses(result)).build();
+          AddErasureCodingPoliciesResponseProto.newBuilder()
+            .addAllResponses(responseProtos).build();
       return response;
     } catch (IOException e) {
       throw new ServiceException(e);
