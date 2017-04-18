@@ -326,7 +326,7 @@ final class FSDirErasureCodingOp {
         if (inode.isFile()) {
           byte id = inode.asFile().getErasureCodingPolicyID();
           return id < 0 ? null :
-              SystemErasureCodingPolicies.getByID(id);
+              fsd.getFSNamesystem().getErasureCodingPolicyManager().getByID(id);
         }
         // We don't allow setting EC policies on paths with a symlink. Thus
         // if a symlink is encountered, the dir shouldn't have EC policy.
@@ -341,7 +341,8 @@ final class FSDirErasureCodingOp {
             ByteArrayInputStream bIn = new ByteArrayInputStream(xattr.getValue());
             DataInputStream dIn = new DataInputStream(bIn);
             String ecPolicyName = WritableUtils.readString(dIn);
-            return SystemErasureCodingPolicies.getByName(ecPolicyName);
+            return fsd.getFSNamesystem().getErasureCodingPolicyManager()
+              .getByName(ecPolicyName);
           }
         }
       }

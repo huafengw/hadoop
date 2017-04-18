@@ -431,7 +431,6 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
   private final BlockManager blockManager;
   private final SnapshotManager snapshotManager;
   private final CacheManager cacheManager;
-  private final ErasureCodingPolicyManager ecPolicyManager;
   private final DatanodeStatistics datanodeStatistics;
 
   private String nameserviceId;
@@ -595,9 +594,9 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
     leaseManager.removeAllLeases();
     snapshotManager.clearSnapshottableDirs();
     cacheManager.clear();
-    ecPolicyManager.clear();
     setImageLoaded(false);
     blockManager.clear();
+    ErasureCodingPolicyManager.getInstance().clear();
   }
 
   @VisibleForTesting
@@ -848,7 +847,8 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
       this.dir = new FSDirectory(this, conf);
       this.snapshotManager = new SnapshotManager(conf, dir);
       this.cacheManager = new CacheManager(this, conf, blockManager);
-      this.ecPolicyManager = new ErasureCodingPolicyManager(conf);
+      // Init ErasureCodingPolicyManager instance.
+      ErasureCodingPolicyManager.getInstance().init(conf);
       this.topConf = new TopConf(conf);
       this.auditLoggers = initAuditLoggers(conf);
       this.isDefaultAuditLogger = auditLoggers.size() == 1 &&
@@ -5755,7 +5755,7 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
 
   /** @return the ErasureCodingPolicyManager. */
   public ErasureCodingPolicyManager getErasureCodingPolicyManager() {
-    return ecPolicyManager;
+    return ErasureCodingPolicyManager.getInstance();
   }
 
   @Override

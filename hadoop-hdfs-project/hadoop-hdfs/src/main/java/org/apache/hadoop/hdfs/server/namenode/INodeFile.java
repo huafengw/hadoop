@@ -192,7 +192,7 @@ public class INodeFile extends INodeWithAdditionalFields
       if (blockType == STRIPED) {
         Preconditions.checkArgument(replication == null &&
             erasureCodingPolicyID != null);
-        Preconditions.checkArgument(SystemErasureCodingPolicies
+        Preconditions.checkArgument(ErasureCodingPolicyManager.getInstance()
                 .getByID(erasureCodingPolicyID) != null,
             "Could not find EC policy with ID 0x" + StringUtils
                 .byteToHexString(erasureCodingPolicyID));
@@ -516,8 +516,8 @@ public class INodeFile extends INodeWithAdditionalFields
       return max;
     }
 
-    ErasureCodingPolicy ecPolicy =
-        SystemErasureCodingPolicies.getByID(getErasureCodingPolicyID());
+    ErasureCodingPolicy ecPolicy = ErasureCodingPolicyManager.getInstance()
+        .getByID(getErasureCodingPolicyID());
     Preconditions.checkNotNull(ecPolicy, "Could not find EC policy with ID 0x"
         + StringUtils.byteToHexString(getErasureCodingPolicyID()));
     return (short) (ecPolicy.getNumDataUnits() + ecPolicy.getNumParityUnits());
