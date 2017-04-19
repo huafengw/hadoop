@@ -170,6 +170,9 @@ public class ECAdmin extends Configured implements Tool {
         ErasureCodingPolicy[] policies = null;
         AddingECPolicyResponse[] responses =
             dfs.addErasureCodingPolicies(policies);
+        for (AddingECPolicyResponse response : responses) {
+          System.out.println(response);
+        }
       } catch (IOException e) {
         System.err.println(AdminHelper.prettifyException(e));
         return 2;

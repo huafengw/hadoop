@@ -67,4 +67,14 @@ public class AddingECPolicyResponse {
         policy.equals(response.getPolicy()) &&
         (succeed || errorMsg.equals(response.getErrorMsg()));
   }
+
+  @Override
+  public String toString() {
+    if (isSucceed()) {
+      return "Add ErasureCodingPolicy " + getPolicy().getName() + " succeed.";
+    } else {
+      return "Add ErasureCodingPolicy " + getPolicy().getName() + " failed and"
+          + "error message is " + getErrorMsg();
+    }
+  }
 }
