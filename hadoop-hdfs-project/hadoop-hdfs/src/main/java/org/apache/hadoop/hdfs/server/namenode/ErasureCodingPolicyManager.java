@@ -40,7 +40,7 @@ import java.util.stream.Stream;
  */
 @InterfaceAudience.LimitedPrivate({"HDFS"})
 public final class ErasureCodingPolicyManager {
-  private final byte USER_DEFINED_POLICY_START_ID = 32;
+  private static final byte USER_DEFINED_POLICY_START_ID = 32;
 
   // Supported storage policies for striped EC files
   private static final byte[] SUITABLE_STORAGE_POLICIES_FOR_EC_STRIPED_MODE =
@@ -65,7 +65,7 @@ public final class ErasureCodingPolicyManager {
    */
   private Map<String, ErasureCodingPolicy> enabledPoliciesByName;
 
-  private static ErasureCodingPolicyManager instance = null;
+  private volatile static ErasureCodingPolicyManager instance = null;
 
   public static ErasureCodingPolicyManager getInstance() {
     if (instance == null) {
@@ -189,7 +189,8 @@ public final class ErasureCodingPolicyManager {
   // Todo: add other policy verification
   public synchronized void addPolicy(ErasureCodingPolicy policy)
       throws IllegalECPolicyException {
-    if (enabledPoliciesByName.containsKey(policy.getName())) {
+    if (userPoliciesByName.containsKey(policy.getName()) ||
+        SystemErasureCodingPolicies.getByName(policy.getName()) != null) {
       throw new IllegalECPolicyException("The policy name already exists");
     }
     policy.setId(getNextAvailablePolicyID());
@@ -199,7 +200,7 @@ public final class ErasureCodingPolicyManager {
 
   private byte getNextAvailablePolicyID() {
     byte currentId = this.userPoliciesByID.keySet().stream()
-      .max(Byte::compareTo).orElse(USER_DEFINED_POLICY_START_ID);
-    return (byte) (currentId + 1) ;
+        .max(Byte::compareTo).orElse(USER_DEFINED_POLICY_START_ID);
+    return (byte) (currentId + 1);
   }
 }

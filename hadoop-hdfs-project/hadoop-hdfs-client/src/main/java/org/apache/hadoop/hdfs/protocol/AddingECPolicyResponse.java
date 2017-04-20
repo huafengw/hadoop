@@ -17,6 +17,11 @@
  */
 package org.apache.hadoop.hdfs.protocol;
 
+import org.apache.commons.lang.builder.HashCodeBuilder;
+
+/**
+ * A response of adding an ErasureCoding policy.
+ */
 public class AddingECPolicyResponse {
   private boolean succeed;
   private ErasureCodingPolicy policy;
@@ -66,6 +71,15 @@ public class AddingECPolicyResponse {
     return succeed == response.isSucceed() &&
         policy.equals(response.getPolicy()) &&
         (succeed || errorMsg.equals(response.getErrorMsg()));
+  }
+
+  @Override
+  public int hashCode() {
+    return new HashCodeBuilder()
+      .append(succeed)
+      .append(policy)
+      .append(errorMsg)
+      .toHashCode();
   }
 
   @Override

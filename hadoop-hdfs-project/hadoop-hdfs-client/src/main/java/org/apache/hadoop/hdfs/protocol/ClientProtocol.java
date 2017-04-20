@@ -18,7 +18,6 @@
 package org.apache.hadoop.hdfs.protocol;
 
 import java.io.IOException;
-import java.util.Collection;
 import java.util.EnumSet;
 import java.util.List;
 
@@ -1522,7 +1521,7 @@ public interface ClientProtocol {
       throws IOException;
 
   /**
-   * Add Erasure coding policies to HDFS.
+   * Add Erasure coding policies.
    *
    * @param policies The user defined ec policy list to add.
    * @return Return the response list of adding operations.

@@ -912,15 +912,15 @@ public class TestPBHelper {
   public void testConvertAddingECPolicyResponse() throws Exception {
     // Check conversion of the built-in policies.
     for (ErasureCodingPolicy policy :
-      SystemErasureCodingPolicies.getPolicies()) {
+        SystemErasureCodingPolicies.getPolicies()) {
       AddingECPolicyResponse response = new AddingECPolicyResponse(policy);
       HdfsProtos.AddingECPolicyResponseProto proto = PBHelperClient
-        .convertAddingECPolicyResponse(response);
+          .convertAddingECPolicyResponse(response);
       // Optional fields should not be set.
       assertFalse("Unnecessary field is set.", proto.hasErrorMsg());
       // Convert proto back to an object and check for equality.
       AddingECPolicyResponse convertedResponse = PBHelperClient
-        .convertAddingECPolicyResponse(proto);
+          .convertAddingECPolicyResponse(proto);
       assertEquals("Converted policy not equal", response, convertedResponse);
     }
 
@@ -929,10 +929,10 @@ public class TestPBHelper {
     AddingECPolicyResponse response =
         new AddingECPolicyResponse(policy, "failed");
     HdfsProtos.AddingECPolicyResponseProto proto = PBHelperClient
-      .convertAddingECPolicyResponse(response);
+        .convertAddingECPolicyResponse(response);
     // Convert proto back to an object and check for equality.
     AddingECPolicyResponse convertedResponse = PBHelperClient
-      .convertAddingECPolicyResponse(proto);
+        .convertAddingECPolicyResponse(proto);
     assertEquals("Converted policy not equal", response, convertedResponse);
   }
 
