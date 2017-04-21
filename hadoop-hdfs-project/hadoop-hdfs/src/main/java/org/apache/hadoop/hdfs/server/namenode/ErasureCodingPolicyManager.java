@@ -186,13 +186,16 @@ public final class ErasureCodingPolicyManager {
     // This is a placeholder for HDFS-7337.
   }
 
-  // Todo: add other policy verification
   public synchronized void addPolicy(ErasureCodingPolicy policy)
       throws IllegalECPolicyException {
-    if (userPoliciesByName.containsKey(policy.getName()) ||
-        SystemErasureCodingPolicies.getByName(policy.getName()) != null) {
-      throw new IllegalECPolicyException("The policy name already exists");
+    String assignedNewName = ErasureCodingPolicy.composePolicyName(
+        policy.getSchema(), policy.getCellSize());
+    for (ErasureCodingPolicy p : getPolicies()) {
+      if (p.getName().equals(assignedNewName)) {
+        throw new IllegalECPolicyException("The policy name already exists");
+      }
     }
+    policy.setName(assignedNewName);
     policy.setId(getNextAvailablePolicyID());
     this.userPoliciesByName.put(policy.getName(), policy);
     this.userPoliciesByID.put(policy.getId(), policy);

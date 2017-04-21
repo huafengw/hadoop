@@ -6843,7 +6843,7 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
         responses.add(new AddingECPolicyResponse(policy, e));
       }
     }
-    writeUnlock("reportBadBlocks");
+    writeUnlock("addECPolicies");
     return responses.toArray(new AddingECPolicyResponse[0]);
   }
 

@@ -24,6 +24,7 @@ import org.apache.hadoop.hdfs.DFSConfigKeys;
 import org.apache.hadoop.hdfs.DistributedFileSystem;
 import org.apache.hadoop.hdfs.protocol.AddingECPolicyResponse;
 import org.apache.hadoop.hdfs.protocol.ErasureCodingPolicy;
+import org.apache.hadoop.hdfs.util.ECPolicyLoader;
 import org.apache.hadoop.tools.TableListing;
 import org.apache.hadoop.util.StringUtils;
 import org.apache.hadoop.util.Tool;
@@ -146,19 +147,28 @@ public class ECAdmin extends Configured implements Tool {
 
     @Override
     public String getShortUsage() {
-      return "[" + getName() + "]\n";
+      return "[" + getName() + " -policyFile <file>]\n";
     }
 
     @Override
     public String getLongUsage() {
+      final TableListing listing = AdminHelper.getOptionDescriptionListing();
+      listing.addRow("<file>",
+          "The path of the xml file which defines the EC policies to add");
       return getShortUsage() + "\n" +
-        "Add a list of erasure coding policies.\n" +
-        "Policies can be enabled on the NameNode via `" +
-        DFSConfigKeys.DFS_NAMENODE_EC_POLICIES_ENABLED_KEY + "`.\n";
+          "Add a list of erasure coding policies.\n" +
+          listing.toString();
     }
 
     @Override
     public int run(Configuration conf, List<String> args) throws IOException {
+      final String filePath = StringUtils.popOptionWithArgument("-policyFile", args);
+      if (filePath == null) {
+        System.err.println("Please specify the path with -policyFile.\nUsage: " +
+            getLongUsage());
+        return 1;
+      }
+
       if (args.size() > 0) {
         System.err.println(getName() + ": Too many arguments");
         return 1;
@@ -166,13 +176,18 @@ public class ECAdmin extends Configured implements Tool {
 
       final DistributedFileSystem dfs = AdminHelper.getDFS(conf);
       try {
-        //Todo
-        ErasureCodingPolicy[] policies = null;
-        AddingECPolicyResponse[] responses =
-            dfs.addErasureCodingPolicies(policies);
-        for (AddingECPolicyResponse response : responses) {
-          System.out.println(response);
+        List<ErasureCodingPolicy> policies =
+            new ECPolicyLoader().loadPolicy(filePath);
+        if (policies.size() > 0) {
+          AddingECPolicyResponse[] responses = dfs.addErasureCodingPolicies(
+            policies.toArray(new ErasureCodingPolicy[policies.size()]));
+          for (AddingECPolicyResponse response : responses) {
+            System.out.println(response);
+          }
+        } else {
+          System.out.println("No EC policy parsed out from " + filePath);
         }
+
       } catch (IOException e) {
         System.err.println(AdminHelper.prettifyException(e));
         return 2;

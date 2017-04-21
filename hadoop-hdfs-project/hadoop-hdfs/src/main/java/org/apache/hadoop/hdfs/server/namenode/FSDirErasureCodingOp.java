@@ -212,7 +212,7 @@ final class FSDirErasureCodingOp {
 
   static void addErasureCodePolicy(final FSNamesystem fsn,
       ErasureCodingPolicy policy) throws IllegalECPolicyException {
-    Preconditions.checkArgument(policy != null);
+    Preconditions.checkNotNull(policy);
     fsn.getErasureCodingPolicyManager().addPolicy(policy);
   }
 

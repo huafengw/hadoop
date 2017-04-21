@@ -87,7 +87,7 @@ public class AddingECPolicyResponse {
     if (isSucceed()) {
       return "Add ErasureCodingPolicy " + getPolicy().getName() + " succeed.";
     } else {
-      return "Add ErasureCodingPolicy " + getPolicy().getName() + " failed and"
+      return "Add ErasureCodingPolicy " + getPolicy().getName() + " failed and "
           + "error message is " + getErrorMsg();
     }
   }
