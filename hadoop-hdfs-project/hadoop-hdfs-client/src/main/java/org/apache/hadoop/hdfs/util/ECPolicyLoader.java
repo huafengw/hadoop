@@ -62,7 +62,7 @@ public class ECPolicyLoader {
   public List<ErasureCodingPolicy> loadPolicy(String policyFilePath) {
     try {
       File policyFile = getPolicyFile(policyFilePath);
-      if (policyFile == null) {
+      if (!policyFile.exists()) {
         LOG.warn("Not found any EC policy file");
         return Collections.emptyList();
       }
