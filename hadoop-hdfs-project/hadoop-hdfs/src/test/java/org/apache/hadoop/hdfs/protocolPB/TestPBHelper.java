@@ -921,7 +921,10 @@ public class TestPBHelper {
       // Convert proto back to an object and check for equality.
       AddingECPolicyResponse convertedResponse = PBHelperClient
           .convertAddingECPolicyResponse(proto);
-      assertEquals("Converted policy not equal", response, convertedResponse);
+      assertEquals("Converted policy not equal", response.getPolicy(),
+          convertedResponse.getPolicy());
+      assertEquals("Converted policy not equal", response.isSucceed(),
+          convertedResponse.isSucceed());
     }
 
     ErasureCodingPolicy policy = SystemErasureCodingPolicies
@@ -933,7 +936,10 @@ public class TestPBHelper {
     // Convert proto back to an object and check for equality.
     AddingECPolicyResponse convertedResponse = PBHelperClient
         .convertAddingECPolicyResponse(proto);
-    assertEquals("Converted policy not equal", response, convertedResponse);
+    assertEquals("Converted policy not equal", response.getPolicy(),
+        convertedResponse.getPolicy());
+    assertEquals("Converted policy not equal", response.getErrorMsg(),
+        convertedResponse.getErrorMsg());
   }
 
   @Test

@@ -21,7 +21,7 @@ import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
 
 /**
- * An Exception indicates the error when adding an ErasureCoding policy
+ * An Exception indicates the error when adding an ErasureCoding policy.
  */
 @InterfaceAudience.Private
 @InterfaceStability.Evolving

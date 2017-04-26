@@ -57,32 +57,6 @@ public class AddingECPolicyResponse {
   }
 
   @Override
-  public boolean equals(Object o) {
-    if (o == null) {
-      return false;
-    }
-    if (o == this) {
-      return true;
-    }
-    if (o.getClass() != getClass()) {
-      return false;
-    }
-    AddingECPolicyResponse response = (AddingECPolicyResponse) o;
-    return succeed == response.isSucceed() &&
-        policy.equals(response.getPolicy()) &&
-        (succeed || errorMsg.equals(response.getErrorMsg()));
-  }
-
-  @Override
-  public int hashCode() {
-    return new HashCodeBuilder()
-      .append(succeed)
-      .append(policy)
-      .append(errorMsg)
-      .toHashCode();
-  }
-
-  @Override
   public String toString() {
     if (isSucceed()) {
       return "Add ErasureCodingPolicy " + getPolicy().getName() + " succeed.";

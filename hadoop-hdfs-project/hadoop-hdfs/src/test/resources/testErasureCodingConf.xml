@@ -333,7 +333,7 @@
     <test>
       <description>addPolicies : add a list of ECPolicies</description>
       <test-commands>
-        <ec-admin-command>-fs NAMENODE -addPolicies -policyFile CLITEST_DATA/user_ec_policies.xml</ec-admin-command>
+        <ec-admin-command>-fs NAMENODE -addPolicies -policyFile CLITEST_DATA/test_ec_policies.xml</ec-admin-command>
       </test-commands>
       <cleanup-commands>
       </cleanup-commands>

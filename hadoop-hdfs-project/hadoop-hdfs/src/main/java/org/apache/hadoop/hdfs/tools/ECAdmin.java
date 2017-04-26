@@ -162,10 +162,11 @@ public class ECAdmin extends Configured implements Tool {
 
     @Override
     public int run(Configuration conf, List<String> args) throws IOException {
-      final String filePath = StringUtils.popOptionWithArgument("-policyFile", args);
+      final String filePath =
+          StringUtils.popOptionWithArgument("-policyFile", args);
       if (filePath == null) {
-        System.err.println("Please specify the path with -policyFile.\nUsage: " +
-            getLongUsage());
+        System.err.println("Please specify the path with -policyFile.\nUsage: "
+            + getLongUsage());
         return 1;
       }
 

@@ -74,16 +74,21 @@ public final class ErasureCodingPolicyManager {
     return instance;
   }
 
-  private ErasureCodingPolicyManager() {}
+  private ErasureCodingPolicyManager() {
+    this.userPoliciesByID = new TreeMap<>();
+    this.userPoliciesByName = new TreeMap<>();
+    this.enabledPoliciesByName = new TreeMap<>();
+  }
 
   public void init(Configuration conf) {
+    this.loadPolicies(conf);
+  }
+
+  private void loadPolicies(Configuration conf) {
     // Populate the list of enabled policies from configuration
     final String[] policyNames = conf.getTrimmedStrings(
         DFSConfigKeys.DFS_NAMENODE_EC_POLICIES_ENABLED_KEY,
         DFSConfigKeys.DFS_NAMENODE_EC_POLICIES_ENABLED_DEFAULT);
-    this.userPoliciesByID = new TreeMap<>();
-    this.userPoliciesByName = new TreeMap<>();
-    this.enabledPoliciesByName = new TreeMap<>();
     for (String policyName : policyNames) {
       if (policyName.trim().isEmpty()) {
         continue;
@@ -193,6 +198,11 @@ public final class ErasureCodingPolicyManager {
     for (ErasureCodingPolicy p : getPolicies()) {
       if (p.getName().equals(assignedNewName)) {
         throw new IllegalECPolicyException("The policy name already exists");
+      }
+      if (p.getSchema().equals(policy.getSchema()) &&
+          p.getCellSize() == policy.getCellSize()) {
+        throw new IllegalECPolicyException("A policy with same schema and " +
+            "cell size already exists");
       }
     }
     policy.setName(assignedNewName);

@@ -220,7 +220,8 @@ public class ECPolicyLoader {
    * @param policyFilePath path of EC policy file
    * @return EC policy file
    */
-  private File getPolicyFile(String policyFilePath) throws MalformedURLException {
+  private File getPolicyFile(String policyFilePath)
+      throws MalformedURLException {
     File policyFile = new File(policyFilePath);
     if (!policyFile.isAbsolute()) {
       URL url = new URL(policyFilePath);

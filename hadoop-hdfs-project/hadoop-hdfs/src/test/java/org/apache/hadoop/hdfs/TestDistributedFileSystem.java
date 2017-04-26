@@ -1475,7 +1475,6 @@ public class TestDistributedFileSystem {
       assertEquals(2, responses.length);
       assertFalse(responses[0].isSucceed());
       assertTrue(responses[1].isSucceed());
-      System.out.println(responses[1].getPolicy());
       assertTrue(responses[1].getPolicy().getId() > 0);
     } finally {
       if (cluster != null) {
