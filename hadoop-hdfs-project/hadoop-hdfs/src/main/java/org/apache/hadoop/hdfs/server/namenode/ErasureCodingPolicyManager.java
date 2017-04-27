@@ -74,11 +74,7 @@ public final class ErasureCodingPolicyManager {
     return instance;
   }
 
-  private ErasureCodingPolicyManager() {
-    this.userPoliciesByID = new TreeMap<>();
-    this.userPoliciesByName = new TreeMap<>();
-    this.enabledPoliciesByName = new TreeMap<>();
-  }
+  private ErasureCodingPolicyManager() {}
 
   public void init(Configuration conf) {
     this.loadPolicies(conf);
@@ -89,6 +85,9 @@ public final class ErasureCodingPolicyManager {
     final String[] policyNames = conf.getTrimmedStrings(
         DFSConfigKeys.DFS_NAMENODE_EC_POLICIES_ENABLED_KEY,
         DFSConfigKeys.DFS_NAMENODE_EC_POLICIES_ENABLED_DEFAULT);
+    this.userPoliciesByID = new TreeMap<>();
+    this.userPoliciesByName = new TreeMap<>();
+    this.enabledPoliciesByName = new TreeMap<>();
     for (String policyName : policyNames) {
       if (policyName.trim().isEmpty()) {
         continue;
