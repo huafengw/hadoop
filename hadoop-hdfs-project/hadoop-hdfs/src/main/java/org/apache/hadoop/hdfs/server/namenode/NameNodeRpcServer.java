@@ -590,6 +590,13 @@ class NameNodeRpcServer implements NamenodeProtocols {
       throws IOException {
     checkNNStartup();
     metrics.incrGetBlockLocations();
+    if (offset == 0) {
+      long curTime = System.currentTimeMillis();
+      synchronized (accessEvents) {
+        accessEvents.add(new FileAccessEvent(src, "", curTime));
+      }
+    }
+
     return namesystem.getBlockLocations(getClientMachine(), 
                                         src, offset, length);
   }
