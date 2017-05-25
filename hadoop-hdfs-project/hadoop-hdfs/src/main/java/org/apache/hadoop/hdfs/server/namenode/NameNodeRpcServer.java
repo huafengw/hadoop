@@ -89,7 +89,7 @@ import org.apache.hadoop.hdfs.protocol.DirectoryListing;
 import org.apache.hadoop.hdfs.protocol.EncryptionZone;
 import org.apache.hadoop.hdfs.protocol.ExtendedBlock;
 import org.apache.hadoop.hdfs.protocol.FSLimitException;
-import org.apache.hadoop.hdfs.protocol.FileAccessEvent;
+import org.apache.hadoop.hdfs.protocol.HdfsFileAccessEvent;
 import org.apache.hadoop.hdfs.protocol.FilesAccessInfo;
 import org.apache.hadoop.hdfs.protocol.HdfsConstants;
 import org.apache.hadoop.hdfs.protocol.LastBlockWithStatus;
@@ -219,7 +219,7 @@ class NameNodeRpcServer implements NamenodeProtocols {
   
   private final String minimumDataNodeVersion;
 
-  private List<FileAccessEvent> accessEvents = new ArrayList<>();
+  private List<HdfsFileAccessEvent> accessEvents = new ArrayList<>();
 
   public NameNodeRpcServer(Configuration conf, NameNode nn)
       throws IOException {
@@ -593,7 +593,7 @@ class NameNodeRpcServer implements NamenodeProtocols {
     if (offset == 0) {
       long curTime = System.currentTimeMillis();
       synchronized (accessEvents) {
-        accessEvents.add(new FileAccessEvent(src, "", curTime));
+        accessEvents.add(new HdfsFileAccessEvent(src, "", curTime));
       }
     }
 

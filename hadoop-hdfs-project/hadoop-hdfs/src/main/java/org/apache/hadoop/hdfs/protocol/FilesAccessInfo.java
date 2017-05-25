@@ -22,17 +22,17 @@ import java.util.Arrays;
 import java.util.List;
 
 public class FilesAccessInfo {
-  private List<FileAccessEvent> fileAccessEvents;
+  private List<HdfsFileAccessEvent> hdfsFileAccessEvents;
 
-  public FilesAccessInfo(FileAccessEvent[] events) {
+  public FilesAccessInfo(HdfsFileAccessEvent[] events) {
     this(Arrays.asList(events));
   }
 
-  public FilesAccessInfo(List<FileAccessEvent> events) {
-    this.fileAccessEvents = new ArrayList<>(events);
+  public FilesAccessInfo(List<HdfsFileAccessEvent> events) {
+    this.hdfsFileAccessEvents = new ArrayList<>(events);
   }
 
-  public List<FileAccessEvent> getFileAccessEvents() {
-    return fileAccessEvents;
+  public List<HdfsFileAccessEvent> getHdfsFileAccessEvents() {
+    return hdfsFileAccessEvents;
   }
 }

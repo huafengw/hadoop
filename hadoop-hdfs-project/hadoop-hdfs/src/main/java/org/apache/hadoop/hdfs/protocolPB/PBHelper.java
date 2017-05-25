@@ -46,7 +46,6 @@ import org.apache.hadoop.fs.permission.AclStatus;
 import org.apache.hadoop.fs.permission.FsAction;
 import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.hadoop.ha.HAServiceProtocol.HAServiceState;
-import org.apache.hadoop.ha.proto.HAServiceProtocolProtos;
 import org.apache.hadoop.hdfs.inotify.EventBatch;
 import org.apache.hadoop.hdfs.protocol.BlockStoragePolicy;
 import org.apache.hadoop.hdfs.DFSUtil;
@@ -72,7 +71,7 @@ import org.apache.hadoop.hdfs.protocol.DirectoryListing;
 import org.apache.hadoop.hdfs.protocol.EncryptionZone;
 import org.apache.hadoop.hdfs.protocol.ExtendedBlock;
 import org.apache.hadoop.fs.FileEncryptionInfo;
-import org.apache.hadoop.hdfs.protocol.FileAccessEvent;
+import org.apache.hadoop.hdfs.protocol.HdfsFileAccessEvent;
 import org.apache.hadoop.hdfs.protocol.FilesAccessInfo;
 import org.apache.hadoop.hdfs.protocol.FsPermissionExtension;
 import org.apache.hadoop.hdfs.protocol.HdfsConstants.DatanodeReportType;
@@ -113,7 +112,6 @@ import org.apache.hadoop.hdfs.protocol.proto.ClientNamenodeProtocolProtos.Rollin
 import org.apache.hadoop.hdfs.protocol.proto.ClientNamenodeProtocolProtos.SafeModeActionProto;
 import org.apache.hadoop.hdfs.protocol.proto.DataTransferProtos.ShortCircuitShmIdProto;
 import org.apache.hadoop.hdfs.protocol.proto.DataTransferProtos.ShortCircuitShmSlotProto;
-import org.apache.hadoop.hdfs.protocol.proto.DatanodeProtocolProtos;
 import org.apache.hadoop.hdfs.protocol.proto.DatanodeProtocolProtos.BalancerBandwidthCommandProto;
 import org.apache.hadoop.hdfs.protocol.proto.DatanodeProtocolProtos.BlockCommandProto;
 import org.apache.hadoop.hdfs.protocol.proto.DatanodeProtocolProtos.BlockIdCommandProto;
@@ -191,7 +189,6 @@ import org.apache.hadoop.hdfs.server.blockmanagement.BlockStoragePolicySuite;
 import org.apache.hadoop.hdfs.server.common.HdfsServerConstants.NamenodeRole;
 import org.apache.hadoop.hdfs.server.common.HdfsServerConstants.NodeType;
 import org.apache.hadoop.hdfs.server.common.HdfsServerConstants.ReplicaState;
-import org.apache.hadoop.hdfs.server.common.Storage;
 import org.apache.hadoop.hdfs.server.common.StorageInfo;
 import org.apache.hadoop.hdfs.server.namenode.CheckpointSignature;
 import org.apache.hadoop.hdfs.server.namenode.INodeId;
@@ -895,13 +892,13 @@ public class PBHelper {
   // FilesAccessInfoProto
   public static FilesAccessInfo convert(FilesAccessInfoProto proto) {
     List<HdfsProtos.FileAccessEventProto> protos = proto.getAccessEventsList();
-    List<FileAccessEvent> events = new ArrayList<>(protos.size());
+    List<HdfsFileAccessEvent> events = new ArrayList<>(protos.size());
     for(HdfsProtos.FileAccessEventProto eventProto : protos) {
       if (eventProto.hasUser()) {
-        events.add(new FileAccessEvent(eventProto.getPath(),
+        events.add(new HdfsFileAccessEvent(eventProto.getPath(),
           eventProto.getUser(), eventProto.getTimestamp()));
       } else {
-        events.add(new FileAccessEvent(eventProto.getPath(),
+        events.add(new HdfsFileAccessEvent(eventProto.getPath(),
           eventProto.getTimestamp()));
       }
     }
@@ -914,10 +911,10 @@ public class PBHelper {
     }
 
     FilesAccessInfoProto.Builder builder = FilesAccessInfoProto.newBuilder();
-    List<FileAccessEvent> events = info.getFileAccessEvents();
+    List<HdfsFileAccessEvent> events = info.getHdfsFileAccessEvents();
     List<HdfsProtos.FileAccessEventProto> eventsProto = new ArrayList<>();
     if (events != null) {
-      for (FileAccessEvent event : events) {
+      for (HdfsFileAccessEvent event : events) {
         HdfsProtos.FileAccessEventProto.Builder eventBuilder =
           HdfsProtos.FileAccessEventProto.newBuilder();
         eventBuilder.setPath(event.getPath()).setTimestamp(event.getTimestamp());

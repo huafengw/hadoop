@@ -17,16 +17,16 @@
  */
 package org.apache.hadoop.hdfs.protocol;
 
-public class FileAccessEvent {
+public class HdfsFileAccessEvent {
   private String path;
   private String user;
   private long timestamp;
 
-  public FileAccessEvent(String path, long timestamp) {
+  public HdfsFileAccessEvent(String path, long timestamp) {
     this(path, "", timestamp);
   }
 
-  public FileAccessEvent(String path, String user, long timestamp) {
+  public HdfsFileAccessEvent(String path, String user, long timestamp) {
     this.path = path;
     this.user = user;
     this.timestamp = timestamp;
