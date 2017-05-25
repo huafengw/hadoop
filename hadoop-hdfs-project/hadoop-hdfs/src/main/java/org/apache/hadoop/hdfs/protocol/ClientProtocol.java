@@ -140,6 +140,15 @@ public interface ClientProtocol {
   @Idempotent
   public FsServerDefaults getServerDefaults() throws IOException;
 
+
+  /**
+   *
+   * @return
+   * @throws IOException
+   */
+  @Idempotent
+  FilesAccessInfo getFilesAccessInfo() throws IOException;
+
   /**
    * Create a new file entry in the namespace.
    * <p>

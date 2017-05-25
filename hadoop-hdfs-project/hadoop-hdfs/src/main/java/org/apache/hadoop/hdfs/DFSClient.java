@@ -159,6 +159,7 @@ import org.apache.hadoop.hdfs.protocol.DirectoryListing;
 import org.apache.hadoop.hdfs.protocol.EncryptionZone;
 import org.apache.hadoop.hdfs.protocol.EncryptionZoneIterator;
 import org.apache.hadoop.hdfs.protocol.ExtendedBlock;
+import org.apache.hadoop.hdfs.protocol.FilesAccessInfo;
 import org.apache.hadoop.hdfs.protocol.HdfsBlocksMetadata;
 import org.apache.hadoop.hdfs.protocol.HdfsConstants;
 import org.apache.hadoop.hdfs.protocol.HdfsConstants.DatanodeReportType;
@@ -861,6 +862,15 @@ public class DFSClient implements java.io.Closeable, RemotePeerFactory,
     synchronized(filesBeingWritten) {
       return filesBeingWritten.isEmpty();
     }
+  }
+
+  /**
+   * Get file related access statistics info
+   * @return
+   * @throws IOException
+   */
+  public FilesAccessInfo getFilesAccessInfo() throws IOException {
+    return namenode.getFilesAccessInfo();
   }
   
   /** @return true if the client is running */

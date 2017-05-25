@@ -28,6 +28,7 @@ import static org.apache.hadoop.util.Time.now;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.EnumSet;
@@ -88,6 +89,8 @@ import org.apache.hadoop.hdfs.protocol.DirectoryListing;
 import org.apache.hadoop.hdfs.protocol.EncryptionZone;
 import org.apache.hadoop.hdfs.protocol.ExtendedBlock;
 import org.apache.hadoop.hdfs.protocol.FSLimitException;
+import org.apache.hadoop.hdfs.protocol.FileAccessEvent;
+import org.apache.hadoop.hdfs.protocol.FilesAccessInfo;
 import org.apache.hadoop.hdfs.protocol.HdfsConstants;
 import org.apache.hadoop.hdfs.protocol.LastBlockWithStatus;
 import org.apache.hadoop.hdfs.protocol.HdfsConstants.DatanodeReportType;
@@ -215,6 +218,8 @@ class NameNodeRpcServer implements NamenodeProtocols {
   protected final InetSocketAddress clientRpcAddress;
   
   private final String minimumDataNodeVersion;
+
+  private List<FileAccessEvent> accessEvents = new ArrayList<>();
 
   public NameNodeRpcServer(Configuration conf, NameNode nn)
       throws IOException {
@@ -660,6 +665,15 @@ class NameNodeRpcServer implements NamenodeProtocols {
     }
     metrics.incrFilesAppended();
     return info;
+  }
+
+  @Override
+  public FilesAccessInfo getFilesAccessInfo() throws IOException {
+    synchronized (accessEvents) {
+      FilesAccessInfo ret = new FilesAccessInfo(accessEvents);
+      this.accessEvents.clear();
+      return ret;
+    }
   }
 
   @Override // ClientProtocol

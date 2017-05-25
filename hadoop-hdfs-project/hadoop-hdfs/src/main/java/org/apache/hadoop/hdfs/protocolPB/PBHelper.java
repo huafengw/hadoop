@@ -72,6 +72,8 @@ import org.apache.hadoop.hdfs.protocol.DirectoryListing;
 import org.apache.hadoop.hdfs.protocol.EncryptionZone;
 import org.apache.hadoop.hdfs.protocol.ExtendedBlock;
 import org.apache.hadoop.fs.FileEncryptionInfo;
+import org.apache.hadoop.hdfs.protocol.FileAccessEvent;
+import org.apache.hadoop.hdfs.protocol.FilesAccessInfo;
 import org.apache.hadoop.hdfs.protocol.FsPermissionExtension;
 import org.apache.hadoop.hdfs.protocol.HdfsConstants.DatanodeReportType;
 import org.apache.hadoop.hdfs.protocol.HdfsConstants.RollingUpgradeAction;
@@ -172,6 +174,7 @@ import org.apache.hadoop.hdfs.protocol.proto.HdfsProtos.StorageReportProto;
 import org.apache.hadoop.hdfs.protocol.proto.HdfsProtos.StorageTypeProto;
 import org.apache.hadoop.hdfs.protocol.proto.HdfsProtos.StorageTypesProto;
 import org.apache.hadoop.hdfs.protocol.proto.HdfsProtos.StorageUuidsProto;
+import org.apache.hadoop.hdfs.protocol.proto.HdfsProtos.FilesAccessInfoProto;
 import org.apache.hadoop.hdfs.protocol.proto.InotifyProtos;
 import org.apache.hadoop.hdfs.protocol.proto.JournalProtocolProtos.JournalInfoProto;
 import org.apache.hadoop.hdfs.protocol.proto.XAttrProtos.GetXAttrsResponseProto;
@@ -888,7 +891,47 @@ public class PBHelper {
       return ReplicaStateProto.FINALIZED;
     }
   }
-  
+
+  // FilesAccessInfoProto
+  public static FilesAccessInfo convert(FilesAccessInfoProto proto) {
+    List<HdfsProtos.FileAccessEventProto> protos = proto.getAccessEventsList();
+    List<FileAccessEvent> events = new ArrayList<>(protos.size());
+    for(HdfsProtos.FileAccessEventProto eventProto : protos) {
+      if (eventProto.hasUser()) {
+        events.add(new FileAccessEvent(eventProto.getPath(),
+          eventProto.getUser(), eventProto.getTimestamp()));
+      } else {
+        events.add(new FileAccessEvent(eventProto.getPath(),
+          eventProto.getTimestamp()));
+      }
+    }
+    return new FilesAccessInfo(events);
+  }
+
+  public static FilesAccessInfoProto convert(FilesAccessInfo info) {
+    if (info == null) {
+      return null;
+    }
+
+    FilesAccessInfoProto.Builder builder = FilesAccessInfoProto.newBuilder();
+    List<FileAccessEvent> events = info.getFileAccessEvents();
+    List<HdfsProtos.FileAccessEventProto> eventsProto = new ArrayList<>();
+    if (events != null) {
+      for (FileAccessEvent event : events) {
+        HdfsProtos.FileAccessEventProto.Builder eventBuilder =
+          HdfsProtos.FileAccessEventProto.newBuilder();
+        eventBuilder.setPath(event.getPath()).setTimestamp(event.getTimestamp());
+        if (event.getUser() != null) {
+          eventBuilder.setUser(event.getUser());
+        }
+        eventsProto.add(eventBuilder.build());
+      }
+    }
+    builder.addAllAccessEvents(eventsProto);
+    return builder.build();
+  }
+
+
   public static DatanodeRegistrationProto convert(
       DatanodeRegistration registration) {
     DatanodeRegistrationProto.Builder builder = DatanodeRegistrationProto

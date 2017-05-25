@@ -36,6 +36,7 @@ import org.apache.hadoop.hdfs.protocol.ClientProtocol;
 import org.apache.hadoop.hdfs.protocol.CorruptFileBlocks;
 import org.apache.hadoop.hdfs.protocol.DirectoryListing;
 import org.apache.hadoop.hdfs.protocol.EncryptionZone;
+import org.apache.hadoop.hdfs.protocol.FilesAccessInfo;
 import org.apache.hadoop.hdfs.protocol.HdfsFileStatus;
 import org.apache.hadoop.hdfs.protocol.LastBlockWithStatus;
 import org.apache.hadoop.hdfs.protocol.LocatedBlock;
@@ -55,6 +56,8 @@ import org.apache.hadoop.hdfs.protocol.proto.AclProtos.RemoveDefaultAclRequestPr
 import org.apache.hadoop.hdfs.protocol.proto.AclProtos.RemoveDefaultAclResponseProto;
 import org.apache.hadoop.hdfs.protocol.proto.AclProtos.SetAclRequestProto;
 import org.apache.hadoop.hdfs.protocol.proto.AclProtos.SetAclResponseProto;
+import org.apache.hadoop.hdfs.protocol.proto.ClientNamenodeProtocolProtos.GetFilesAccessInfoRequestProto;
+import org.apache.hadoop.hdfs.protocol.proto.ClientNamenodeProtocolProtos.GetFilesAccessInfoResponseProto;
 import org.apache.hadoop.hdfs.protocol.proto.ClientNamenodeProtocolProtos.AbandonBlockRequestProto;
 import org.apache.hadoop.hdfs.protocol.proto.ClientNamenodeProtocolProtos.AbandonBlockResponseProto;
 import org.apache.hadoop.hdfs.protocol.proto.ClientNamenodeProtocolProtos.AddBlockRequestProto;
@@ -355,6 +358,23 @@ public class ClientNamenodeProtocolServerSideTranslatorPB implements
   public ClientNamenodeProtocolServerSideTranslatorPB(ClientProtocol server)
       throws IOException {
     this.server = server;
+  }
+
+  @Override
+  public GetFilesAccessInfoResponseProto getFilesAccessInfo(
+      RpcController controller, GetFilesAccessInfoRequestProto req)
+      throws ServiceException {
+    try {
+      FilesAccessInfo info = server.getFilesAccessInfo();
+      GetFilesAccessInfoResponseProto.Builder builder =
+        GetFilesAccessInfoResponseProto.newBuilder();
+      if (builder != null) {
+        return builder.setAccessInfo(PBHelper.convert(info)).build();
+      }
+      return null;
+    } catch (IOException e) {
+      throw new ServiceException(e);
+    }
   }
 
   @Override

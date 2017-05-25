@@ -60,6 +60,7 @@ import org.apache.hadoop.hdfs.protocol.DatanodeInfo;
 import org.apache.hadoop.hdfs.protocol.DirectoryListing;
 import org.apache.hadoop.hdfs.protocol.EncryptionZone;
 import org.apache.hadoop.hdfs.protocol.ExtendedBlock;
+import org.apache.hadoop.hdfs.protocol.FilesAccessInfo;
 import org.apache.hadoop.hdfs.protocol.HdfsConstants.DatanodeReportType;
 import org.apache.hadoop.hdfs.protocol.HdfsConstants.RollingUpgradeAction;
 import org.apache.hadoop.hdfs.protocol.HdfsConstants.SafeModeAction;
@@ -77,6 +78,8 @@ import org.apache.hadoop.hdfs.protocol.proto.AclProtos.RemoveAclEntriesRequestPr
 import org.apache.hadoop.hdfs.protocol.proto.AclProtos.RemoveAclRequestProto;
 import org.apache.hadoop.hdfs.protocol.proto.AclProtos.RemoveDefaultAclRequestProto;
 import org.apache.hadoop.hdfs.protocol.proto.AclProtos.SetAclRequestProto;
+import org.apache.hadoop.hdfs.protocol.proto.ClientNamenodeProtocolProtos.GetFilesAccessInfoRequestProto;
+import org.apache.hadoop.hdfs.protocol.proto.ClientNamenodeProtocolProtos.GetFilesAccessInfoResponseProto;
 import org.apache.hadoop.hdfs.protocol.proto.ClientNamenodeProtocolProtos.AbandonBlockRequestProto;
 import org.apache.hadoop.hdfs.protocol.proto.ClientNamenodeProtocolProtos.AddBlockRequestProto;
 import org.apache.hadoop.hdfs.protocol.proto.ClientNamenodeProtocolProtos.AddCacheDirectiveRequestProto;
@@ -311,6 +314,19 @@ public class ClientNamenodeProtocolTranslatorPB implements
         .build();
     try {
       return rpcProxy.truncate(null, req).getResult();
+    } catch (ServiceException e) {
+      throw ProtobufHelper.getRemoteException(e);
+    }
+  }
+
+  @Override
+  public FilesAccessInfo getFilesAccessInfo() throws IOException {
+    GetFilesAccessInfoRequestProto req = GetFilesAccessInfoRequestProto
+      .newBuilder()
+      .build();
+    try {
+      GetFilesAccessInfoResponseProto resp = rpcProxy.getFilesAccessInfo(null, req);
+      return PBHelper.convert(resp.getAccessInfo());
     } catch (ServiceException e) {
       throw ProtobufHelper.getRemoteException(e);
     }

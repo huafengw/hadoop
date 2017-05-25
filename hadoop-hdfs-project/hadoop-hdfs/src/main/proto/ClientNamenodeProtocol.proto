@@ -61,6 +61,13 @@ message GetServerDefaultsResponseProto {
   required FsServerDefaultsProto serverDefaults = 1;
 }
 
+message GetFilesAccessInfoRequestProto { // void
+}
+
+message GetFilesAccessInfoResponseProto {
+    required FilesAccessInfoProto accessInfo = 1;
+}
+
 enum CreateFlagProto {
   CREATE = 0x01;    // Create a file
   OVERWRITE = 0x02; // Truncate/overwrite a file. Same as POSIX O_TRUNC
@@ -712,6 +719,8 @@ message GetEditsFromTxidResponseProto {
 }
 
 service ClientNamenodeProtocol {
+  rpc getFilesAccessInfo(GetFilesAccessInfoRequestProto)
+      returns(GetFilesAccessInfoResponseProto);
   rpc getBlockLocations(GetBlockLocationsRequestProto)
       returns(GetBlockLocationsResponseProto);
   rpc getServerDefaults(GetServerDefaultsRequestProto)

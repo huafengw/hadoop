@@ -231,6 +231,16 @@ message DataEncryptionKeyProto {
   optional string encryptionAlgorithm = 6;
 }
 
+message FileAccessEventProto {
+  required string path = 1;
+  required int64 timestamp = 2;
+  optional string user = 3;
+}
+
+message FilesAccessInfoProto {
+  repeated FileAccessEventProto accessEvents = 1;
+}
+
 /**
  * Cipher suite.
  */
