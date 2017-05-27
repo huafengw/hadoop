@@ -1029,6 +1029,11 @@ public class FileAccessMetrics implements MetricsSource {
     }
 
     @Override
+    public void remove() {
+      throw new UnsupportedOperationException("remove");
+    }
+
+    @Override
     public void close() {
       try {
         if (reader != null) {
@@ -1072,7 +1077,7 @@ public class FileAccessMetrics implements MetricsSource {
       Info info;
       do {
         info = readInfo();
-      } while (!start && info != null && info.timestamp < timestamp);
+      } while (!start && info != null && info.timestamp <= timestamp);
       if (info != null) {
         curTime = timestamp;
       }
