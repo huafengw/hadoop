@@ -7211,7 +7211,7 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
     try {
       checkOperation(OperationCategory.READ);
       final ErasureCodingPolicy ret =
-        FSDirErasureCodingOp.getErasureCodingPolicy(this, src, pc);
+          FSDirErasureCodingOp.getErasureCodingPolicy(this, src, pc);
       success = true;
       return ret;
     } finally {
@@ -7231,7 +7231,7 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
     try {
       checkOperation(OperationCategory.READ);
       final ErasureCodingPolicy[] ret =
-        FSDirErasureCodingOp.getErasureCodingPolicies(this);
+          FSDirErasureCodingOp.getErasureCodingPolicies(this);
       success = true;
       return ret;
     } finally {
@@ -7251,7 +7251,7 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
     try {
       checkOperation(OperationCategory.READ);
       final HashMap<String, String> ret =
-        FSDirErasureCodingOp.getErasureCodingCodecs(this);
+          FSDirErasureCodingOp.getErasureCodingCodecs(this);
       success = true;
       return ret;
     } finally {
