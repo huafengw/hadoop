@@ -7038,18 +7038,13 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
       resultingStat = FSDirErasureCodingOp.setErasureCodingPolicy(this,
           srcArg, ecPolicyName, pc, logRetryCache);
       success = true;
-    } catch (AccessControlException ace) {
-      logAuditEvent(success, operationName, srcArg, null,
-          resultingStat);
-      throw ace;
     } finally {
       writeUnlock(operationName);
       if (success) {
         getEditLog().logSync();
       }
+      logAuditEvent(success, operationName, srcArg, null, resultingStat);
     }
-    logAuditEvent(success, operationName, srcArg, null,
-        resultingStat);
   }
 
   /**
@@ -7057,9 +7052,9 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
    * @param policies The policies to add.
    * @return The according result of add operation.
    */
-  AddECPolicyResponse[] addECPolicies(ErasureCodingPolicy[] policies)
+  AddECPolicyResponse[] addErasureCodingPolicies(ErasureCodingPolicy[] policies)
       throws IOException {
-    final String operationName = "addECPolicies";
+    final String operationName = "addErasureCodingPolicies";
     String addECPolicyName = "";
     checkOperation(OperationCategory.WRITE);
     List<AddECPolicyResponse> responses = new ArrayList<>();
@@ -7184,18 +7179,13 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
       resultingStat = FSDirErasureCodingOp.unsetErasureCodingPolicy(this,
           srcArg, pc, logRetryCache);
       success = true;
-    } catch (AccessControlException ace) {
-      logAuditEvent(success, operationName, srcArg, null,
-          resultingStat);
-      throw ace;
     } finally {
       writeUnlock(operationName);
       if (success) {
         getEditLog().logSync();
       }
+      logAuditEvent(success, operationName, srcArg, null, resultingStat);
     }
-    logAuditEvent(success, operationName, srcArg, null,
-        resultingStat);
   }
 
   /**
