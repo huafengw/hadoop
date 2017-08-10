@@ -1662,7 +1662,7 @@ public class ClientNamenodeProtocolServerSideTranslatorPB implements
       RpcController controller, GetErasureCodingCodecsRequestProto request)
       throws ServiceException {
     try {
-      HashMap<String, String> codecs = server.getErasureCodingCodecs();
+      Map<String, String> codecs = server.getErasureCodingCodecs();
       GetErasureCodingCodecsResponseProto.Builder resBuilder =
           GetErasureCodingCodecsResponseProto.newBuilder();
       for (Map.Entry<String, String> codec : codecs.entrySet()) {
