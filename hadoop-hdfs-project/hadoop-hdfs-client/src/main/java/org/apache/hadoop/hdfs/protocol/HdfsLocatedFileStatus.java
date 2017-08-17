@@ -81,8 +81,13 @@ public class HdfsLocatedFileStatus extends HdfsFileStatus {
   public final LocatedFileStatus makeQualifiedLocated(URI defaultUri,
       Path path) {
     makeQualified(defaultUri, path);
-    return new LocatedFileStatus(this,
+    if (isErasureCoded()) {
+      return new LocatedFileStatus(this,
+        DFSUtilClient.getErasureCodedDataBlocks(getBlockLocations(), getErasureCodingPolicy()));
+    } else {
+      return new LocatedFileStatus(this,
         DFSUtilClient.locatedBlocks2Locations(getBlockLocations()));
+    }
   }
 
   @Override
