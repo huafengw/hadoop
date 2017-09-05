@@ -35,6 +35,7 @@ public class LocatedFileStatus extends FileStatus {
 
   private BlockLocation[] locations;
 
+
   public LocatedFileStatus() {
     super();
   }

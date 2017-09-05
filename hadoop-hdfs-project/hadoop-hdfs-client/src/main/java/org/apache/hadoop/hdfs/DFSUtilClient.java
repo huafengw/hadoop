@@ -227,23 +227,30 @@ public class DFSUtilClient {
    * @param ecPolicy the corresponding erasure coding policy
    * @return an ErasureCodedBlockLocation
    */
-  public static ErasureCodedBlockLocation parseErasureCodedBlocks(LocatedBlocks locatedBlocks, ErasureCodingPolicy ecPolicy) {
+  public static ErasureCodedBlockLocation parseErasureCodedBlocks(
+      LocatedBlocks locatedBlocks, ErasureCodingPolicy ecPolicy) {
     List<LocatedBlock> dataBlocks = new ArrayList<>();
     List<LocatedBlock> parityBlocks = new ArrayList<>();
     for (LocatedBlock blk : locatedBlocks.getLocatedBlocks()) {
       if (blk instanceof LocatedStripedBlock) {
         LocatedStripedBlock lsb = (LocatedStripedBlock) blk;
         LocatedBlock[] blocks = StripedBlockUtil.parseStripedBlockGroup(lsb,
-          ecPolicy.getCellSize(), ecPolicy.getNumDataUnits(), ecPolicy.getNumParityUnits());
-        dataBlocks.addAll(Arrays.asList(blocks).subList(0, ecPolicy.getNumDataUnits()));
-        parityBlocks.addAll(Arrays.asList(blocks).subList(ecPolicy.getNumDataUnits(), ecPolicy.getNumDataUnits() + ecPolicy.getNumParityUnits()));
+            ecPolicy.getCellSize(), ecPolicy.getNumDataUnits(),
+            ecPolicy.getNumParityUnits());
+        dataBlocks.addAll(
+            Arrays.asList(blocks).subList(0, ecPolicy.getNumDataUnits()));
+        parityBlocks.addAll(Arrays.asList(blocks).subList(
+            ecPolicy.getNumDataUnits(),
+            ecPolicy.getNumDataUnits() + ecPolicy.getNumParityUnits()));
       }
     }
-    return new ErasureCodedBlockLocation(DFSUtilClient.locatedBlocks2Locations(dataBlocks),
-      DFSUtilClient.locatedBlocks2Locations(parityBlocks));
+    return new ErasureCodedBlockLocation(
+        DFSUtilClient.locatedBlocks2Locations(dataBlocks),
+        DFSUtilClient.locatedBlocks2Locations(parityBlocks));
   }
 
-  public static BlockLocation[] getErasureCodedDataBlocks(LocatedBlocks locatedBlocks, ErasureCodingPolicy ecPolicy) {
+  public static BlockLocation[] getErasureCodedDataBlocks(
+      LocatedBlocks locatedBlocks, ErasureCodingPolicy ecPolicy) {
     return parseErasureCodedBlocks(locatedBlocks, ecPolicy).getDataBlocks();
   }
 

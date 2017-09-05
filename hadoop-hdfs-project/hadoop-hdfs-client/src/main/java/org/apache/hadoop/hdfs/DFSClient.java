@@ -2845,7 +2845,8 @@ public class DFSClient implements java.io.Closeable, RemotePeerFactory,
       throw new IOException(src + " is not a erasure coded file");
     }
     LocatedBlocks locatedBlocks = getLocatedBlocks(src, 0, status.getLen());
-    return DFSUtilClient.parseErasureCodedBlocks(locatedBlocks, status.getErasureCodingPolicy());
+    return DFSUtilClient.parseErasureCodedBlocks(locatedBlocks,
+        status.getErasureCodingPolicy());
   }
 
   public DFSInotifyEventInputStream getInotifyEventStream() throws IOException {
