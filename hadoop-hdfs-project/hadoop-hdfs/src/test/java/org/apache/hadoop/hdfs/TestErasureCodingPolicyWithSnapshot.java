@@ -24,11 +24,15 @@ import java.io.IOException;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FsShell;
+import org.apache.hadoop.fs.LocatedFileStatus;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.RemoteIterator;
 import org.apache.hadoop.fs.contract.ContractTestUtils;
 import org.apache.hadoop.fs.permission.FsPermission;
+import org.apache.hadoop.hdfs.protocol.DirectoryListing;
 import org.apache.hadoop.hdfs.protocol.ErasureCodingPolicy;
 import org.apache.hadoop.hdfs.protocol.HdfsConstants.SafeModeAction;
+import org.apache.hadoop.hdfs.protocol.HdfsFileStatus;
 import org.apache.hadoop.util.ToolRunner;
 import org.junit.After;
 import org.junit.Before;
@@ -53,6 +57,7 @@ public class TestErasureCodingPolicyWithSnapshot {
     groupSize = (short) (ecPolicy.getNumDataUnits()
         + ecPolicy.getNumParityUnits());
     conf = new HdfsConfiguration();
+    conf.set("dfs.block.size", "10240000");
     conf.set(DFSConfigKeys.DFS_NAMENODE_EC_POLICIES_ENABLED_KEY,
         ecPolicy.getName());
     cluster = new MiniDFSCluster.Builder(conf).numDataNodes(groupSize).build();
@@ -74,7 +79,7 @@ public class TestErasureCodingPolicyWithSnapshot {
    */
   @Test(timeout = 120000)
   public void testSnapshotsOnErasureCodingDirsParentDir() throws Exception {
-    final int len = 1024;
+    final int len = 65535 * 12 * 40;
     final Path ecDirParent = new Path("/parent");
     final Path ecDir = new Path(ecDirParent, "ecdir");
     final Path ecFile = new Path(ecDir, "ecfile");
@@ -84,6 +89,13 @@ public class TestErasureCodingPolicyWithSnapshot {
     fs.setErasureCodingPolicy(ecDir, ecPolicy.getName());
     DFSTestUtil.createFile(fs, ecFile, len, (short) 1, 0xFEED);
     String contents = DFSTestUtil.readFile(fs, ecFile);
+    DirectoryListing listing = fs.getClient().listPaths(ecFile.toString(), HdfsFileStatus.EMPTY_NAME, true);
+    listing.getPartialListing();
+    RemoteIterator<LocatedFileStatus> iterator = fs.listLocatedStatus(ecDir);
+    while (iterator.hasNext()) {
+      LocatedFileStatus stat = iterator.next();
+      stat.toString();
+    }
     final Path snap1 = fs.createSnapshot(ecDirParent, "snap1");
     final Path snap1ECDir = new Path(snap1, ecDir.getName());
     assertEquals("Got unexpected erasure coding policy", ecPolicy,
