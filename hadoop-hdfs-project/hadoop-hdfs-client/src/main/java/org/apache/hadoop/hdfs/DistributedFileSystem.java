@@ -1104,7 +1104,7 @@ public class DistributedFileSystem extends FileSystem {
    *
    * @param <T> the type of the file status
    */
-  private class DirListingIterator<T extends FileStatus>
+  private class  DirListingIterator<T extends FileStatus>
       implements RemoteIterator<T> {
     private DirectoryListing thisListing;
     private int i;

@@ -83,8 +83,7 @@ public class HdfsLocatedFileStatus extends HdfsFileStatus {
     makeQualified(defaultUri, path);
     if (isErasureCoded()) {
       return new LocatedFileStatus(this,
-          DFSUtilClient.getErasureCodedDataBlocks(getBlockLocations(),
-            getErasureCodingPolicy()));
+          DFSUtilClient.getErasureCodedDataBlocks(getBlockLocations()));
     } else {
       return new LocatedFileStatus(this,
           DFSUtilClient.locatedBlocks2Locations(getBlockLocations()));

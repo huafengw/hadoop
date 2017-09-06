@@ -220,7 +220,11 @@ public class DFSUtilClient {
   }
 
   public static BlockLocation[] getErasureCodedDataBlocks(
-      LocatedBlocks locatedBlocks, ErasureCodingPolicy ecPolicy) {
+      LocatedBlocks locatedBlocks) {
+    ErasureCodingPolicy ecPolicy = locatedBlocks.getErasureCodingPolicy();
+    if (ecPolicy == null) {
+      return new BlockLocation[0];
+    }
     List<LocatedBlock> dataBlocks = new ArrayList<>();
     for (LocatedBlock blk : locatedBlocks.getLocatedBlocks()) {
       if (blk instanceof LocatedStripedBlock) {
