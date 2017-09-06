@@ -72,7 +72,6 @@ import org.apache.hadoop.fs.ContentSummary;
 import org.apache.hadoop.fs.CreateFlag;
 import org.apache.hadoop.fs.FileAlreadyExistsException;
 import org.apache.hadoop.fs.FileEncryptionInfo;
-import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.FsServerDefaults;
 import org.apache.hadoop.fs.FsStatus;
@@ -160,7 +159,6 @@ import org.apache.hadoop.hdfs.util.IOUtilsClient;
 import org.apache.hadoop.io.EnumSetWritable;
 import org.apache.hadoop.io.IOUtils;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.io.erasurecode.ErasureCodedBlockLocation;
 import org.apache.hadoop.io.retry.LossyRetryInvocationHandler;
 import org.apache.hadoop.ipc.RPC;
 import org.apache.hadoop.ipc.RemoteException;
@@ -2833,20 +2831,6 @@ public class DFSClient implements java.io.Closeable, RemotePeerFactory,
       throw re.unwrapRemoteException(AccessControlException.class,
           SafeModeException.class);
     }
-  }
-
-  public ErasureCodedBlockLocation getECBlockLocation(String src) throws IOException {
-    checkOpen();
-    HdfsFileStatus status = getFileInfo(src);
-    if (status == null) {
-      throw new FileNotFoundException("File does not exist: " + src);
-    }
-    if (status.isDirectory() || !status.isErasureCoded()) {
-      throw new IOException(src + " is not a erasure coded file");
-    }
-    LocatedBlocks locatedBlocks = getLocatedBlocks(src, 0, status.getLen());
-    return DFSUtilClient.parseErasureCodedBlocks(locatedBlocks,
-        status.getErasureCodingPolicy());
   }
 
   public DFSInotifyEventInputStream getInotifyEventStream() throws IOException {

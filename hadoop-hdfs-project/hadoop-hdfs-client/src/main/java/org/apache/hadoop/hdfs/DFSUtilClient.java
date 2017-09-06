@@ -51,7 +51,6 @@ import org.apache.hadoop.hdfs.util.IOUtilsClient;
 import org.apache.hadoop.hdfs.util.StripedBlockUtil;
 import org.apache.hadoop.hdfs.web.WebHdfsConstants;
 import org.apache.hadoop.io.IOUtils;
-import org.apache.hadoop.io.erasurecode.ErasureCodedBlockLocation;
 import org.apache.hadoop.net.NetUtils;
 import org.apache.hadoop.net.NodeBase;
 import org.apache.hadoop.security.UserGroupInformation;
@@ -220,38 +219,19 @@ public class DFSUtilClient {
     return locatedBlocks2Locations(blocks.getLocatedBlocks());
   }
 
-  /**
-   * Convert a LocatedBlocks to ErasureCodedBlockLocation which contains all the data blocks
-   * and parity blocks
-   * @param locatedBlocks a LocatedBlocks
-   * @param ecPolicy the corresponding erasure coding policy
-   * @return an ErasureCodedBlockLocation
-   */
-  public static ErasureCodedBlockLocation parseErasureCodedBlocks(
+  public static BlockLocation[] getErasureCodedDataBlocks(
       LocatedBlocks locatedBlocks, ErasureCodingPolicy ecPolicy) {
     List<LocatedBlock> dataBlocks = new ArrayList<>();
-    List<LocatedBlock> parityBlocks = new ArrayList<>();
     for (LocatedBlock blk : locatedBlocks.getLocatedBlocks()) {
       if (blk instanceof LocatedStripedBlock) {
         LocatedStripedBlock lsb = (LocatedStripedBlock) blk;
         LocatedBlock[] blocks = StripedBlockUtil.parseStripedBlockGroup(lsb,
             ecPolicy.getCellSize(), ecPolicy.getNumDataUnits(),
             ecPolicy.getNumParityUnits());
-        dataBlocks.addAll(
-            Arrays.asList(blocks).subList(0, ecPolicy.getNumDataUnits()));
-        parityBlocks.addAll(Arrays.asList(blocks).subList(
-            ecPolicy.getNumDataUnits(),
-            ecPolicy.getNumDataUnits() + ecPolicy.getNumParityUnits()));
+        dataBlocks.addAll(Arrays.asList(blocks).subList(0, ecPolicy.getNumDataUnits()));
       }
     }
-    return new ErasureCodedBlockLocation(
-        DFSUtilClient.locatedBlocks2Locations(dataBlocks),
-        DFSUtilClient.locatedBlocks2Locations(parityBlocks));
-  }
-
-  public static BlockLocation[] getErasureCodedDataBlocks(
-      LocatedBlocks locatedBlocks, ErasureCodingPolicy ecPolicy) {
-    return parseErasureCodedBlocks(locatedBlocks, ecPolicy).getDataBlocks();
+    return DFSUtilClient.locatedBlocks2Locations(dataBlocks);
   }
 
   /**

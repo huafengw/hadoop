@@ -89,7 +89,6 @@ import org.apache.hadoop.hdfs.protocol.SnapshotDiffReport;
 import org.apache.hadoop.hdfs.protocol.SnapshottableDirectoryStatus;
 import org.apache.hadoop.hdfs.security.token.delegation.DelegationTokenIdentifier;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.io.erasurecode.ErasureCodedBlockLocation;
 import org.apache.hadoop.net.NetUtils;
 import org.apache.hadoop.security.Credentials;
 import org.apache.hadoop.security.token.Token;
@@ -2702,10 +2701,6 @@ public class DistributedFileSystem extends FileSystem {
                 + "non-DistributedFileSystem: " + path + " -> " + p);
       }
     }.resolve(this, absF);
-  }
-
-  public ErasureCodedBlockLocation getECBlockLocation(String src) throws IOException {
-    return dfs.getECBlockLocation(src);
   }
 
   /**
