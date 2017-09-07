@@ -219,6 +219,11 @@ public class DFSUtilClient {
     return locatedBlocks2Locations(blocks.getLocatedBlocks());
   }
 
+  /**
+   * Get a erasure coded file's all data blocks.
+   * @param locatedBlocks a LocatedBlocks
+   * @return an array of data blocks' BlockLocations
+   */
   public static BlockLocation[] getErasureCodedDataBlocks(
       LocatedBlocks locatedBlocks) {
     ErasureCodingPolicy ecPolicy = locatedBlocks.getErasureCodingPolicy();
@@ -232,7 +237,12 @@ public class DFSUtilClient {
         LocatedBlock[] blocks = StripedBlockUtil.parseStripedBlockGroup(lsb,
             ecPolicy.getCellSize(), ecPolicy.getNumDataUnits(),
             ecPolicy.getNumParityUnits());
-        dataBlocks.addAll(Arrays.asList(blocks).subList(0, ecPolicy.getNumDataUnits()));
+        //Some data blocks may not exist if there is no striped data on it.
+        for (int i = 0; i < ecPolicy.getNumDataUnits(); i++) {
+          if (blocks[i] != null) {
+            dataBlocks.add(blocks[i]);
+          }
+        }
       }
     }
     return DFSUtilClient.locatedBlocks2Locations(dataBlocks);

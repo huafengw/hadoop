@@ -866,6 +866,12 @@ public class DFSClient implements java.io.Closeable, RemotePeerFactory,
    * data-placement when performing operations.  For example, the
    * MapReduce system tries to schedule tasks on the same machines
    * as the data-block the task processes.
+   *
+   * If the file is erasure coded, the returned BlockLocation will only
+   * include the data blocks. Each data block will only have one hostname
+   * which holds it. Data blocks that belong to the same block group have
+   * the same offset of the file and different sizes according to the actual
+   * size of striped data stored on this block.
    */
   public BlockLocation[] getBlockLocations(String src, long start,
       long length) throws IOException {

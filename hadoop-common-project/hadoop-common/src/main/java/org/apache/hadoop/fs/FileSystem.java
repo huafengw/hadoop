@@ -799,7 +799,11 @@ public abstract class FileSystem extends Configured implements Closeable {
    * The default implementation returns an array containing one element:
    * <pre>
    * BlockLocation( { "localhost:9866" },  { "localhost" }, 0, file.getLen())
-   * </pre>>
+   * </pre>
+   *
+   * In HDFS implementation, the returned BlockLocation array will have
+   * different formats for replicated and erasure coded file. Please refer to
+   * HDFS for more details.
    *
    * @param file FilesStatus to get data from
    * @param start offset into the given file
@@ -1996,6 +2000,10 @@ public abstract class FileSystem extends Configured implements Closeable {
    * Return the file's status and block locations If the path is a file.
    *
    * If a returned status is a file, it contains the file's block locations.
+   * <p>
+   * In HDFS implementation, the BlockLocation of returned LocatedFileStatus
+   * will have different formats for replicated and erasure coded file. Please
+   * refer to HDFS for more details.
    *
    * @param f is the path
    *
@@ -2115,6 +2123,11 @@ public abstract class FileSystem extends Configured implements Closeable {
    * List the statuses and block locations of the files in the given path.
    * Does not guarantee to return the iterator that traverses statuses
    * of the files in a sorted order.
+   * <p>
+   * In HDFS implementation, the BlockLocation of returned LocatedFileStatus
+   * will have different formats for replicated and erasure coded file. Please
+   * refer to HDFS for more details.
+   *
    * <pre>
    * If the path is a directory,
    *   if recursive is false, returns files in the directory;
