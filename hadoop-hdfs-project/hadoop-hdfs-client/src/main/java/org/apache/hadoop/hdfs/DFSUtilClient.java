@@ -222,7 +222,7 @@ public class DFSUtilClient {
   /**
    * Get a erasure coded file's all data blocks.
    * @param locatedBlocks a LocatedBlocks
-   * @return an array of data blocks' BlockLocations
+   * @return an array BlockLocations
    */
   public static BlockLocation[] getErasureCodedDataBlocks(
       LocatedBlocks locatedBlocks) {

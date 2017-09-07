@@ -241,41 +241,10 @@ public class DistributedFileSystem extends FileSystem {
   }
 
   /**
-   * If file is three-replicated, the returned array contains elements like:
-   * <pre>
-   * BlockLocation(offset: 0, length: BLOCK_SIZE,
-   *   hosts: {"host1:9866", "host2:9866, host3:9866"})
-   * BlockLocation(offset: BLOCK_SIZE, length: BLOCK_SIZE,
-   *   hosts: {"host2:9866", "host3:9866, host4:9866"})
-   * </pre>
-   *
-   * And if a file is erasure-coded, the returned BlockLocation are all actual
-   * data blocks, not logical data groups. Each data block will only have one
-   * hostname which holds it. Data blocks that belong to the same block group
-   * have the same offset of the file and different sizes according to the
-   * actual size of striped data stored on this block.
-   *
-   * Suppose we have a RS_6_3 coded file (6 data units and 3 parity units).
-   * 1. If the file size is less than one cell size, then there will be only
-   * one BlockLocation returned.
-   * 2. If the file size is less than one stripe size, say 3 * CELL_SIZE, then
-   * there will be 3 BlockLocations returned.
-   * 3. If the file size is less than one group size but greater than one
-   * stripe size, then there will be 6 BlockLocations returned.
-   * 4. If the file size is greater than one group size, then we will have at
-   * least 6 BlockLocation, and the remaining part can be calculated by
-   * above-mentioned rules.
-   *
-   * Here is a simple example of a file with 3 times of CELL_SIZE length.
-   * <pre>
-   * BlockLocation(offset: 0, length: CELL_SIZE, hosts: {"host1:9866"})
-   * BlockLocation(offset: 0, length: CELL_SIZE, hosts: {"host2:9866"})
-   * BlockLocation(offset: 0, length: CELL_SIZE, hosts: {"host3:9866"})
-   * </pre>
-   *
-   * Please refer to
-   * {@link org.apache.hadoop.hdfs.TestDistributedFileSystemWithECFile} for
-   * more detailed cases.
+   * The returned BlockLocation will have different formats for replicated
+   * and erasure coded file.
+   * Please refer to {@link DFSClient#getBlockLocations(String, long, long)}
+   * for more details.
    */
   @Override
   public BlockLocation[] getFileBlockLocations(Path p,
@@ -1077,6 +1046,12 @@ public class DistributedFileSystem extends FileSystem {
     }.resolve(this, absF);
   }
 
+  /**
+   * The BlockLocation of returned LocatedFileStatus will have different
+   * formats for replicated and erasure coded file.
+   * Please refer to {@link HdfsFileStatus#makeQualified(URI, Path)} for
+   * more details.
+   */
   @Override
   protected RemoteIterator<LocatedFileStatus> listLocatedStatus(final Path p,
       final PathFilter filter)

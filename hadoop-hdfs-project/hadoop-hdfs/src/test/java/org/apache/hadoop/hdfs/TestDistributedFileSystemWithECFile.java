@@ -35,7 +35,7 @@ import static org.junit.Assert.assertTrue;
 
 public class TestDistributedFileSystemWithECFile {
   private final ErasureCodingPolicy ecPolicy =
-    StripedFileTestUtil.getDefaultECPolicy();
+      StripedFileTestUtil.getDefaultECPolicy();
   private final int cellSize = ecPolicy.getCellSize();
   private final short dataBlocks = (short) ecPolicy.getNumDataUnits();
   private final short parityBlocks = (short) ecPolicy.getNumParityUnits();

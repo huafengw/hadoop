@@ -1293,7 +1293,11 @@ public class FileContext {
    *
    * This call is most helpful with DFS, where it returns 
    * hostnames of machines that contain the given file.
-   * 
+   *
+   * In HDFS implementation, the returned BlockLocation array will have
+   * different formats for replicated and erasure coded file. Please refer to
+   * HDFS for more details.
+   *
    * @param f - get blocklocations of this file
    * @param start position (byte offset)
    * @param len (in bytes)
@@ -1527,7 +1531,11 @@ public class FileContext {
    * Return the file's status and block locations If the path is a file.
    * 
    * If a returned status is a file, it contains the file's block locations.
-   * 
+   *
+   * In HDFS implementation, the BlockLocation of returned LocatedFileStatus
+   * will have different formats for replicated and erasure coded file. Please
+   * refer to HDFS for more details.
+   *
    * @param f is the path
    *
    * @return an iterator that traverses statuses of the files/directories 
@@ -1816,7 +1824,11 @@ public class FileContext {
      *   The subtree is traversed in the depth-first order.
      * If the path is a file, return the file's status and block locations.
      * Files across symbolic links are also returned.
-     * 
+     *
+     * In HDFS implementation, the BlockLocation of returned LocatedFileStatus
+     * will have different formats for replicated and erasure coded file. Please
+     * refer to HDFS for more details.
+     *
      * @param f is the path
      * @param recursive if the subdirectories need to be traversed recursively
      *
