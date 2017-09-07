@@ -19,6 +19,8 @@ package org.apache.hadoop.hdfs;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.BlockLocation;
+import org.apache.hadoop.fs.FileContext;
+import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.LocatedFileStatus;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.RemoteIterator;
@@ -33,6 +35,10 @@ import java.util.List;
 
 import static org.junit.Assert.assertTrue;
 
+/**
+ * Testing correctness of FileSystem.getFileBlockLocations and
+ * FileSystem.listFiles for erasure coded files.
+ */
 public class TestDistributedFileSystemWithECFile {
   private final ErasureCodingPolicy ecPolicy =
       StripedFileTestUtil.getDefaultECPolicy();
@@ -45,6 +51,7 @@ public class TestDistributedFileSystemWithECFile {
   private final int blockGroupSize = blockSize * dataBlocks;
 
   private MiniDFSCluster cluster;
+  private FileContext fileContext;
   private DistributedFileSystem fs;
   private Configuration conf = new HdfsConfiguration();
 
@@ -56,6 +63,7 @@ public class TestDistributedFileSystemWithECFile {
     conf.set(DFSConfigKeys.DFS_NAMENODE_EC_POLICIES_ENABLED_KEY,
         StripedFileTestUtil.getDefaultECPolicy().getName());
     cluster = new MiniDFSCluster.Builder(conf).numDataNodes(numDNs).build();
+    fileContext = FileContext.getFileContext(cluster.getURI(0), conf);
     fs = cluster.getFileSystem();
     fs.mkdirs(new Path("/ec"));
     cluster.getFileSystem().getClient().setErasureCodingPolicy("/ec",
@@ -88,8 +96,24 @@ public class TestDistributedFileSystemWithECFile {
       retVal.add(iter.next());
     }
     assertTrue(retVal.size() == 1);
-    assertTrue(retVal.get(0).getBlockLocations().length == 1);
-    BlockLocation blockLocation = retVal.get(0).getBlockLocations()[0];
+    LocatedFileStatus fileStatus = retVal.get(0);
+    assertSmallerThanOneCell(fileStatus.getBlockLocations());
+
+    BlockLocation[] locations = cluster.getFileSystem().getFileBlockLocations(
+        fileStatus, 0, fileStatus.getLen());
+    assertSmallerThanOneCell(locations);
+
+    //Test FileContext
+    fileStatus = fileContext.listLocatedStatus(new Path("/ec")).next();
+    assertSmallerThanOneCell(fileStatus.getBlockLocations());
+    locations = fileContext.getFileBlockLocations(new Path("/ec/smallcell"),
+        0, fileStatus.getLen());
+    assertSmallerThanOneCell(locations);
+  }
+
+  private void assertSmallerThanOneCell(BlockLocation[] locations) throws IOException {
+    assertTrue(locations.length == 1);
+    BlockLocation blockLocation = locations[0];
     assertTrue(blockLocation.getOffset() == 0);
     assertTrue(blockLocation.getLength() == 1);
     assertTrue(blockLocation.getHosts().length == 1);
@@ -99,11 +123,27 @@ public class TestDistributedFileSystemWithECFile {
   public void testListECFilesSmallerThanOneStripe() throws Exception {
     int dataBlocksNum = 3;
     createFile("/ec/smallstripe", cellSize * dataBlocksNum);
-    final RemoteIterator<LocatedFileStatus> iter =
+    RemoteIterator<LocatedFileStatus> iter =
       cluster.getFileSystem().listFiles(new Path("/ec"), true);
     LocatedFileStatus fileStatus = iter.next();
-    assertTrue(fileStatus.getBlockLocations().length == dataBlocksNum);
-    for (BlockLocation blockLocation : fileStatus.getBlockLocations()) {
+    assertSmallerThanOneStripe(fileStatus.getBlockLocations(), dataBlocksNum);
+
+    BlockLocation[] locations = cluster.getFileSystem().getFileBlockLocations(
+      fileStatus, 0, fileStatus.getLen());
+    assertSmallerThanOneStripe(locations, dataBlocksNum);
+
+    //Test FileContext
+    fileStatus = fileContext.listLocatedStatus(new Path("/ec")).next();
+    assertSmallerThanOneStripe(fileStatus.getBlockLocations(), dataBlocksNum);
+    locations = fileContext.getFileBlockLocations(new Path("/ec/smallstripe"),
+        0, fileStatus.getLen());
+    assertSmallerThanOneStripe(locations, dataBlocksNum);
+  }
+
+  private void assertSmallerThanOneStripe(BlockLocation[] locations,
+      int dataBlocksNum) throws IOException {
+    assertTrue(locations.length == dataBlocksNum);
+    for (BlockLocation blockLocation : locations) {
       assertTrue(blockLocation.getHosts().length == 1);
       assertTrue(blockLocation.getOffset() == 0);
       assertTrue(blockLocation.getLength() == cellSize);
@@ -111,21 +151,40 @@ public class TestDistributedFileSystemWithECFile {
   }
 
   @Test(timeout=60000)
-  public void testListECFilesSmallerMoreThanABlockGroup() throws Exception {
+  public void testListECFilesMoreThanOneBlockGroup() throws Exception {
     createFile("/ec/group", blockSize * dataBlocks + 123);
-    final RemoteIterator<LocatedFileStatus> iter =
-      cluster.getFileSystem().listFiles(new Path("/ec"), true);
+    RemoteIterator<LocatedFileStatus> iter =
+        cluster.getFileSystem().listFiles(new Path("/ec"), true);
     LocatedFileStatus fileStatus = iter.next();
-    assertTrue(fileStatus.getBlockLocations().length == dataBlocks + 1);
+    assertMoreThanOneBlockGroup(fileStatus.getBlockLocations(),
+        dataBlocks + 1, 123);
+
+    BlockLocation[] locations = cluster.getFileSystem().getFileBlockLocations(
+      fileStatus, 0, fileStatus.getLen());
+    assertMoreThanOneBlockGroup(locations, dataBlocks + 1, 123);
+
+    //Test FileContext
+    iter = fileContext.listLocatedStatus(new Path("/ec"));
+    fileStatus = iter.next();
+    assertMoreThanOneBlockGroup(fileStatus.getBlockLocations(),
+      dataBlocks + 1, 123);
+    locations = fileContext.getFileBlockLocations(new Path("/ec/group"),
+        0, fileStatus.getLen());
+    assertMoreThanOneBlockGroup(locations, dataBlocks + 1, 123);
+  }
+
+  private void assertMoreThanOneBlockGroup(BlockLocation[] locations,
+      int blocks, int lastBlockSize) throws IOException {
+    assertTrue(locations.length == blocks);
     for (int i = 0; i < dataBlocks; i++) {
-      BlockLocation blockLocation = fileStatus.getBlockLocations()[i];
+      BlockLocation blockLocation = locations[i];
       assertTrue(blockLocation.getHosts().length == 1);
       assertTrue(blockLocation.getOffset() == 0);
       assertTrue(blockLocation.getLength() == blockSize);
     }
-    BlockLocation lastBlock = fileStatus.getBlockLocations()[dataBlocks];
+    BlockLocation lastBlock = locations[dataBlocks];
     assertTrue(lastBlock.getHosts().length == 1);
     assertTrue(lastBlock.getOffset() == blockGroupSize);
-    assertTrue(lastBlock.getLength() == 123);
+    assertTrue(lastBlock.getLength() == lastBlockSize);
   }
 }
