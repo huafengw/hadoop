@@ -34,12 +34,10 @@ import org.apache.hadoop.hdfs.net.Peer;
 import org.apache.hadoop.hdfs.protocol.ClientDatanodeProtocol;
 import org.apache.hadoop.hdfs.protocol.DatanodeID;
 import org.apache.hadoop.hdfs.protocol.DatanodeInfo;
-import org.apache.hadoop.hdfs.protocol.ErasureCodingPolicy;
 import org.apache.hadoop.hdfs.protocol.ExtendedBlock;
 import org.apache.hadoop.hdfs.protocol.HdfsConstants;
 import org.apache.hadoop.hdfs.protocol.LocatedBlock;
 import org.apache.hadoop.hdfs.protocol.LocatedBlocks;
-import org.apache.hadoop.hdfs.protocol.LocatedStripedBlock;
 import org.apache.hadoop.hdfs.protocol.datatransfer.IOStreamPair;
 import org.apache.hadoop.hdfs.protocol.ReconfigurationProtocol;
 import org.apache.hadoop.hdfs.protocol.datatransfer.sasl.DataEncryptionKeyFactory;
@@ -48,7 +46,6 @@ import org.apache.hadoop.hdfs.protocolPB.ClientDatanodeProtocolTranslatorPB;
 import org.apache.hadoop.hdfs.protocolPB.ReconfigurationProtocolTranslatorPB;
 import org.apache.hadoop.hdfs.security.token.block.BlockTokenIdentifier;
 import org.apache.hadoop.hdfs.util.IOUtilsClient;
-import org.apache.hadoop.hdfs.util.StripedBlockUtil;
 import org.apache.hadoop.hdfs.web.WebHdfsConstants;
 import org.apache.hadoop.io.IOUtils;
 import org.apache.hadoop.net.NetUtils;
@@ -77,8 +74,6 @@ import java.net.URI;
 import java.nio.channels.SocketChannel;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -217,35 +212,6 @@ public class DFSUtilClient {
       return new BlockLocation[0];
     }
     return locatedBlocks2Locations(blocks.getLocatedBlocks());
-  }
-
-  /**
-   * Get a erasure coded file's all data blocks.
-   * @param locatedBlocks a LocatedBlocks
-   * @return an array BlockLocations
-   */
-  public static BlockLocation[] getErasureCodedDataBlocks(
-      LocatedBlocks locatedBlocks) {
-    ErasureCodingPolicy ecPolicy = locatedBlocks.getErasureCodingPolicy();
-    if (ecPolicy == null) {
-      return new BlockLocation[0];
-    }
-    List<LocatedBlock> dataBlocks = new ArrayList<>();
-    for (LocatedBlock blk : locatedBlocks.getLocatedBlocks()) {
-      if (blk instanceof LocatedStripedBlock) {
-        LocatedStripedBlock lsb = (LocatedStripedBlock) blk;
-        LocatedBlock[] blocks = StripedBlockUtil.parseStripedBlockGroup(lsb,
-            ecPolicy.getCellSize(), ecPolicy.getNumDataUnits(),
-            ecPolicy.getNumParityUnits());
-        //Some data blocks may not exist if there is no striped data on it.
-        for (int i = 0; i < ecPolicy.getNumDataUnits(); i++) {
-          if (blocks[i] != null) {
-            dataBlocks.add(blocks[i]);
-          }
-        }
-      }
-    }
-    return DFSUtilClient.locatedBlocks2Locations(dataBlocks);
   }
 
   /**

@@ -58,7 +58,7 @@ public class TestDistributedFileSystemWithECFile {
   public void setup() throws IOException {
     conf.setLong(DFSConfigKeys.DFS_BLOCK_SIZE_KEY, blockSize);
     conf.setBoolean(DFSConfigKeys.DFS_NAMENODE_REDUNDANCY_CONSIDERLOAD_KEY,
-      false);
+        false);
     conf.set(DFSConfigKeys.DFS_NAMENODE_EC_POLICIES_ENABLED_KEY,
         StripedFileTestUtil.getDefaultECPolicy().getName());
     cluster = new MiniDFSCluster.Builder(conf).numDataNodes(numDNs).build();
@@ -110,7 +110,8 @@ public class TestDistributedFileSystemWithECFile {
     assertSmallerThanOneCell(locations);
   }
 
-  private void assertSmallerThanOneCell(BlockLocation[] locations) throws IOException {
+  private void assertSmallerThanOneCell(BlockLocation[] locations)
+      throws IOException {
     assertTrue(locations.length == 1);
     BlockLocation blockLocation = locations[0];
     assertTrue(blockLocation.getOffset() == 0);
@@ -123,7 +124,7 @@ public class TestDistributedFileSystemWithECFile {
     int dataBlocksNum = 3;
     createFile("/ec/smallstripe", cellSize * dataBlocksNum);
     RemoteIterator<LocatedFileStatus> iter =
-      cluster.getFileSystem().listFiles(new Path("/ec"), true);
+        cluster.getFileSystem().listFiles(new Path("/ec"), true);
     LocatedFileStatus fileStatus = iter.next();
     assertSmallerThanOneStripe(fileStatus.getBlockLocations(), dataBlocksNum);
 
@@ -166,7 +167,7 @@ public class TestDistributedFileSystemWithECFile {
     iter = fileContext.listLocatedStatus(new Path("/ec"));
     fileStatus = iter.next();
     assertMoreThanOneBlockGroup(fileStatus.getBlockLocations(),
-      dataBlocks + 1, 123);
+        dataBlocks + 1, 123);
     locations = fileContext.getFileBlockLocations(new Path("/ec/group"),
         0, fileStatus.getLen());
     assertMoreThanOneBlockGroup(locations, dataBlocks + 1, 123);

@@ -908,17 +908,13 @@ public class DFSClient implements java.io.Closeable, RemotePeerFactory,
     checkOpen();
     try (TraceScope ignored = newPathTraceScope("getBlockLocations", src)) {
       LocatedBlocks blocks = getLocatedBlocks(src, start, length);
-      if (blocks.getErasureCodingPolicy() == null) {
-        BlockLocation[] locations = DFSUtilClient.locatedBlocks2Locations(blocks);
-        HdfsBlockLocation[] hdfsLocations =
+      BlockLocation[] locations = DFSUtilClient.locatedBlocks2Locations(blocks);
+      HdfsBlockLocation[] hdfsLocations =
           new HdfsBlockLocation[locations.length];
-        for (int i = 0; i < locations.length; i++) {
-          hdfsLocations[i] = new HdfsBlockLocation(locations[i], blocks.get(i));
-        }
-        return hdfsLocations;
-      } else {
-        return DFSUtilClient.getErasureCodedDataBlocks(blocks);
+      for (int i = 0; i < locations.length; i++) {
+        hdfsLocations[i] = new HdfsBlockLocation(locations[i], blocks.get(i));
       }
+      return hdfsLocations;
     }
   }
 

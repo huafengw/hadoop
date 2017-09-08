@@ -218,7 +218,9 @@ public class TestWriteReadStripedFile {
     StripedFileTestUtil.verifyLength(fs, srcPath, fileLength);
 
     if (withDataNodeFailure) {
-      stopDataNode(srcPath);
+      int dnIndex = 1; // TODO: StripedFileTestUtil.random.nextInt(dataBlocks);
+      LOG.info("stop DataNode " + dnIndex);
+      stopDataNode(srcPath, dnIndex);
     }
 
     byte[] smallBuf = new byte[1024];
@@ -237,13 +239,11 @@ public class TestWriteReadStripedFile {
         ByteBuffer.allocate(1024));
   }
 
-  private void stopDataNode(Path path)
+  private void stopDataNode(Path path, int failedDNIdx)
       throws IOException {
-    //In EC case, the returned BlockLocation are data blocks which has only one
-    //hostname. So stop the first data block's corresponding datanode.
     BlockLocation[] locs = fs.getFileBlockLocations(path, 0, cellSize);
     if (locs != null && locs.length > 0) {
-      String name = (locs[0].getNames())[0];
+      String name = (locs[0].getNames())[failedDNIdx];
       for (DataNode dn : cluster.getDataNodes()) {
         int port = dn.getXferPort();
         if (name.contains(Integer.toString(port))) {

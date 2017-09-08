@@ -349,16 +349,6 @@ public abstract class FileInputFormat<K, V> implements InputFormat<K, V> {
         } else {
           blkLocations = fs.getFileBlockLocations(file, 0, length);
         }
-        if (file.isErasureCoded()) {
-          //If erasure coding is enabled, the returned BlockLocations are data
-          //blocks and blocks belong to the same block group share the same
-          //offset. Here adjust the offset to make them replicated-like blocks.
-          int offset = 0;
-          for (BlockLocation adjustedBlkLocation : blkLocations) {
-            adjustedBlkLocation.setOffset(offset);
-            offset += adjustedBlkLocation.getLength();
-          }
-        }
         if (isSplitable(fs, path)) {
           long blockSize = file.getBlockSize();
           long splitSize = computeSplitSize(goalSize, minSize, blockSize);
