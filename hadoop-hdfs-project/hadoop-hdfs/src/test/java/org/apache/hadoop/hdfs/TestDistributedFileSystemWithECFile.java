@@ -129,7 +129,7 @@ public class TestDistributedFileSystemWithECFile {
     assertSmallerThanOneStripe(fileStatus.getBlockLocations(), dataBlocksNum);
 
     BlockLocation[] locations = cluster.getFileSystem().getFileBlockLocations(
-      fileStatus, 0, fileStatus.getLen());
+        fileStatus, 0, fileStatus.getLen());
     assertSmallerThanOneStripe(locations, dataBlocksNum);
 
     //Test FileContext
@@ -159,7 +159,7 @@ public class TestDistributedFileSystemWithECFile {
     assertMoreThanOneBlockGroup(fileStatus.getBlockLocations(), 123);
 
     BlockLocation[] locations = cluster.getFileSystem().getFileBlockLocations(
-      fileStatus, 0, fileStatus.getLen());
+        fileStatus, 0, fileStatus.getLen());
     assertMoreThanOneBlockGroup(locations, 123);
 
     //Test FileContext
