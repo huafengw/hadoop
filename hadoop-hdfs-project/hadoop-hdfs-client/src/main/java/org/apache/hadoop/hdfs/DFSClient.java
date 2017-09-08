@@ -875,28 +875,24 @@ public class DFSClient implements java.io.Closeable, RemotePeerFactory,
    *   hosts: {"host2:9866", "host3:9866, host4:9866"})
    * </pre>
    *
-   * And if a file is erasure-coded, the returned BlockLocation are all actual
-   * data blocks, not logical data groups. Each data block will only have one
-   * hostname which holds it. Data blocks that belong to the same block group
-   * have the same offset of the file and different sizes according to the
-   * actual size of striped data stored on this block.
+   * And if a file is erasure-coded, the returned BlockLocation are logical
+   * data groups.
    *
-   * Suppose we have a RS_6_3 coded file (6 data units and 3 parity units).
-   * 1. If the file size is less than one cell size, then there will be only
-   * one BlockLocation returned.
-   * 2. If the file size is less than one stripe size, say 3 * CELL_SIZE, then
-   * there will be 3 BlockLocations returned.
+   * Suppose we have a RS_3_2 coded file (3 data units and 2 parity units).
+   * 1. If the file size is less than one stripe size, say 2 * CELL_SIZE, then
+   * there will be one BlockLocation returned, with 0 offset, actual file size
+   * and 4 hosts (2 data blocks and 2 parity blocks) hosting the actual blocks.
    * 3. If the file size is less than one group size but greater than one
-   * stripe size, then there will be 6 BlockLocations returned.
-   * 4. If the file size is greater than one group size, then we will have at
-   * least 6 BlockLocation, and the remaining part can be calculated by
-   * above-mentioned rules.
-   *
-   * Here is a simple example of a file with 3 times of CELL_SIZE length.
+   * stripe size, then there will be one BlockLocation returned, with 0 offset,
+   * actual file size with 5 hosts (3 data blocks and 2 parity blocks) hosting
+   * the actual blocks.
+   * 4. If the file size is greater than one group size, 3 * BLOCK_SIZE + 123
+   * for example, then the result will be like:
    * <pre>
-   * BlockLocation(offset: 0, length: CELL_SIZE, hosts: {"host1:9866"})
-   * BlockLocation(offset: 0, length: CELL_SIZE, hosts: {"host2:9866"})
-   * BlockLocation(offset: 0, length: CELL_SIZE, hosts: {"host3:9866"})
+   * BlockLocation(offset: 0, length: 3 * BLOCK_SIZE, hosts: {"host1:9866",
+   *   "host2:9866","host3:9866","host4:9866","host5:9866"})
+   * BlockLocation(offset: 3 * BLOCK_SIZE, length: 123, hosts: {"host1:9866",
+   *   "host4:9866", "host5:9866"})
    * </pre>
    *
    * Please refer to

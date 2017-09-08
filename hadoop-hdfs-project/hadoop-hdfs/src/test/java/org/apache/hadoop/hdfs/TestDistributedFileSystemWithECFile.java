@@ -116,7 +116,7 @@ public class TestDistributedFileSystemWithECFile {
     BlockLocation blockLocation = locations[0];
     assertTrue(blockLocation.getOffset() == 0);
     assertTrue(blockLocation.getLength() == 1);
-    assertTrue(blockLocation.getHosts().length == 1);
+    assertTrue(blockLocation.getHosts().length == 1 + parityBlocks);
   }
 
   @Test(timeout=60000)
@@ -142,48 +142,44 @@ public class TestDistributedFileSystemWithECFile {
 
   private void assertSmallerThanOneStripe(BlockLocation[] locations,
       int dataBlocksNum) throws IOException {
-    assertTrue(locations.length == dataBlocksNum);
-    for (BlockLocation blockLocation : locations) {
-      assertTrue(blockLocation.getHosts().length == 1);
-      assertTrue(blockLocation.getOffset() == 0);
-      assertTrue(blockLocation.getLength() == cellSize);
-    }
+    int expectedHostNum = dataBlocksNum + parityBlocks;
+    assertTrue(locations.length == 1);
+    BlockLocation blockLocation = locations[0];
+    assertTrue(blockLocation.getHosts().length == expectedHostNum);
+    assertTrue(blockLocation.getOffset() == 0);
+    assertTrue(blockLocation.getLength() == dataBlocksNum * cellSize);
   }
 
   @Test(timeout=60000)
   public void testListECFilesMoreThanOneBlockGroup() throws Exception {
-    createFile("/ec/group", blockSize * dataBlocks + 123);
+    createFile("/ec/group", blockGroupSize + 123);
     RemoteIterator<LocatedFileStatus> iter =
         cluster.getFileSystem().listFiles(new Path("/ec"), true);
     LocatedFileStatus fileStatus = iter.next();
-    assertMoreThanOneBlockGroup(fileStatus.getBlockLocations(),
-        dataBlocks + 1, 123);
+    assertMoreThanOneBlockGroup(fileStatus.getBlockLocations(), 123);
 
     BlockLocation[] locations = cluster.getFileSystem().getFileBlockLocations(
       fileStatus, 0, fileStatus.getLen());
-    assertMoreThanOneBlockGroup(locations, dataBlocks + 1, 123);
+    assertMoreThanOneBlockGroup(locations, 123);
 
     //Test FileContext
     iter = fileContext.listLocatedStatus(new Path("/ec"));
     fileStatus = iter.next();
-    assertMoreThanOneBlockGroup(fileStatus.getBlockLocations(),
-        dataBlocks + 1, 123);
+    assertMoreThanOneBlockGroup(fileStatus.getBlockLocations(), 123);
     locations = fileContext.getFileBlockLocations(new Path("/ec/group"),
         0, fileStatus.getLen());
-    assertMoreThanOneBlockGroup(locations, dataBlocks + 1, 123);
+    assertMoreThanOneBlockGroup(locations, 123);
   }
 
   private void assertMoreThanOneBlockGroup(BlockLocation[] locations,
-      int blocks, int lastBlockSize) throws IOException {
-    assertTrue(locations.length == blocks);
-    for (int i = 0; i < dataBlocks; i++) {
-      BlockLocation blockLocation = locations[i];
-      assertTrue(blockLocation.getHosts().length == 1);
-      assertTrue(blockLocation.getOffset() == 0);
-      assertTrue(blockLocation.getLength() == blockSize);
-    }
-    BlockLocation lastBlock = locations[dataBlocks];
-    assertTrue(lastBlock.getHosts().length == 1);
+      int lastBlockSize) throws IOException {
+    assertTrue(locations.length == 2);
+    BlockLocation fistBlockGroup = locations[0];
+    assertTrue(fistBlockGroup.getHosts().length == numDNs);
+    assertTrue(fistBlockGroup.getOffset() == 0);
+    assertTrue(fistBlockGroup.getLength() == blockGroupSize);
+    BlockLocation lastBlock = locations[1];
+    assertTrue(lastBlock.getHosts().length == 1 + parityBlocks);
     assertTrue(lastBlock.getOffset() == blockGroupSize);
     assertTrue(lastBlock.getLength() == lastBlockSize);
   }
