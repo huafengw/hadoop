@@ -32,7 +32,7 @@ import org.apache.hadoop.hdfs.web.WebHdfsConstants;
 import org.apache.hadoop.hdfs.web.WebHdfsTestUtil;
 import org.apache.hadoop.ipc.RemoteException;
 import org.apache.hadoop.test.GenericTestUtils;
-import org.apache.log4j.Level;
+import org.slf4j.event.Level;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -50,24 +50,32 @@ import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Random;
 
+/**
+ * Tests for striped file IO.
+ */
+@SuppressWarnings("checkstyle:hideUtilityClassConstructor")
 @RunWith(Enclosed.class)
 public class TestWriteReadStripedFile {
   public static final Log LOG =
       LogFactory.getLog(TestWriteReadStripedFile.class);
-  private static final ErasureCodingPolicy ecPolicy =
+  private static final ErasureCodingPolicy EC_POLICY =
       StripedFileTestUtil.getDefaultECPolicy();
-  private static final int cellSize = ecPolicy.getCellSize();
-  private static final short dataBlocks = (short) ecPolicy.getNumDataUnits();
-  private static final short parityBlocks =
-      (short) ecPolicy.getNumParityUnits();
-  private static final int stripeSize = cellSize * dataBlocks;
-  private static final int numDNs = dataBlocks + parityBlocks;
-  private static final int stripesPerBlock = 4;
-  private static final int blockSize = stripesPerBlock * cellSize;
-  private static final int blockGroupSize = blockSize * dataBlocks;
+  private static final int CELL_SIZE = EC_POLICY.getCellSize();
+  private static final short DATA_BLOCKS = (short) EC_POLICY.getNumDataUnits();
+  private static final short PARITY_BLOCKS =
+      (short) EC_POLICY.getNumParityUnits();
+  private static final int STRIPE_SIZE = CELL_SIZE * DATA_BLOCKS;
+  private static final int NUM_DNS = DATA_BLOCKS + PARITY_BLOCKS;
+  private static final int STRIPES_PER_BLOCK = 4;
+  private static final int BLOCK_SIZE = STRIPES_PER_BLOCK * CELL_SIZE;
+  private static final int BLOCK_GROUP_SIZE = BLOCK_SIZE * DATA_BLOCKS;
 
+  /**
+   * The base class for internal tests.
+   */
+  @SuppressWarnings("checkstyle:visibilityModifier")
   @Ignore
-  public static class StripedFileIOTestBase {
+  public static abstract class StripedFileIOTestBase {
     MiniDFSCluster cluster;
     DistributedFileSystem fs;
     Configuration conf = new HdfsConfiguration();
@@ -76,21 +84,21 @@ public class TestWriteReadStripedFile {
     public Timeout globalTimeout = new Timeout(300000);
 
     static {
-      GenericTestUtils.setLogLevel(DFSOutputStream.LOG, Level.ALL);
-      GenericTestUtils.setLogLevel(DataStreamer.LOG, Level.ALL);
-      GenericTestUtils.setLogLevel(DFSClient.LOG, Level.ALL);
+      GenericTestUtils.setLogLevel(DFSOutputStream.LOG, Level.DEBUG);
+      GenericTestUtils.setLogLevel(DataStreamer.LOG, Level.DEBUG);
+      GenericTestUtils.setLogLevel(DFSClient.LOG, Level.DEBUG);
       ((Log4JLogger)LogFactory.getLog(BlockPlacementPolicy.class))
-          .getLogger().setLevel(Level.ALL);
+          .getLogger().setLevel(org.apache.log4j.Level.ALL);
     }
 
     @Before
     public void setup() throws IOException {
-      conf.setLong(DFSConfigKeys.DFS_BLOCK_SIZE_KEY, blockSize);
+      conf.setLong(DFSConfigKeys.DFS_BLOCK_SIZE_KEY, BLOCK_SIZE);
       conf.setBoolean(DFSConfigKeys.DFS_NAMENODE_REDUNDANCY_CONSIDERLOAD_KEY,
           false);
       conf.set(DFSConfigKeys.DFS_NAMENODE_EC_POLICIES_ENABLED_KEY,
           StripedFileTestUtil.getDefaultECPolicy().getName());
-      cluster = new MiniDFSCluster.Builder(conf).numDataNodes(numDNs).build();
+      cluster = new MiniDFSCluster.Builder(conf).numDataNodes(NUM_DNS).build();
       fs = cluster.getFileSystem();
       fs.mkdirs(new Path("/ec"));
       cluster.getFileSystem().getClient().setErasureCodingPolicy("/ec",
@@ -106,6 +114,9 @@ public class TestWriteReadStripedFile {
     }
   }
 
+  /**
+   * Tests for different size of striped files.
+   */
   @RunWith(Parameterized.class)
   public static class TestReadStripedFiles extends StripedFileIOTestBase {
     @Parameterized.Parameters(name = "{index}: {0}")
@@ -113,30 +124,33 @@ public class TestWriteReadStripedFile {
       return ImmutableList.<Object[]>builder()
           .add(new Object[]{"/ec/EmptyFile", 0})
           .add(new Object[]{"/ec/SmallerThanOneCell", 1})
-          .add(new Object[]{"/ec/SmallerThanOneCell2", cellSize - 1})
-          .add(new Object[]{"/ec/EqualsWithOneCell", cellSize})
-          .add(new Object[]{"/ec/SmallerThanOneStripe", cellSize + 123})
-          .add(new Object[]{"/ec/SmallerThanOneStripe2", stripeSize - 1})
-          .add(new Object[]{"/ec/EqualsWithOneStripe", stripeSize})
-          .add(new Object[]{"/ec/MoreThanOneStripe", stripeSize + 123})
-          .add(new Object[]{"/ec/MoreThanOneStripe2", stripeSize * 2 + 123})
+          .add(new Object[]{"/ec/SmallerThanOneCell2", CELL_SIZE - 1})
+          .add(new Object[]{"/ec/EqualsWithOneCell", CELL_SIZE})
+          .add(new Object[]{"/ec/SmallerThanOneStripe", CELL_SIZE + 123})
+          .add(new Object[]{"/ec/SmallerThanOneStripe2", STRIPE_SIZE - 1})
+          .add(new Object[]{"/ec/EqualsWithOneStripe", STRIPE_SIZE})
+          .add(new Object[]{"/ec/MoreThanOneStripe", STRIPE_SIZE + 123})
+          .add(new Object[]{"/ec/MoreThanOneStripe2", STRIPE_SIZE * 2 + 123})
           .add(new Object[]{"/ec/LessThanFullBlockGroup",
-              stripeSize * (stripesPerBlock - 1) + cellSize})
-          .add(new Object[]{"/ec/FullBlockGroup", blockSize * dataBlocks})
+              STRIPE_SIZE * (STRIPES_PER_BLOCK - 1) + CELL_SIZE})
+          .add(new Object[]{"/ec/FullBlockGroup", BLOCK_SIZE * DATA_BLOCKS})
           .add(new Object[]{"/ec/MoreThanABlockGroup",
-              blockSize * dataBlocks + 123})
+              BLOCK_SIZE * DATA_BLOCKS + 123})
           .add(new Object[]{"/ec/MoreThanABlockGroup2",
-              blockSize * dataBlocks + cellSize + 123})
+              BLOCK_SIZE * DATA_BLOCKS + CELL_SIZE + 123})
           .add(new Object[]{"/ec/MoreThanABlockGroup3",
-              blockSize * dataBlocks * 3 + stripeSize + cellSize + 123})
+              BLOCK_SIZE * DATA_BLOCKS * 3 + STRIPE_SIZE + CELL_SIZE + 123})
           .build();
     }
 
-    @Parameterized.Parameter(0)
-    public String filePath;
+    private final String filePath;
 
-    @Parameterized.Parameter(1)
-    public int fileLength;
+    private final int fileLength;
+
+    public TestReadStripedFiles(String filePath, int fileLength) {
+      this.filePath = filePath;
+      this.fileLength = fileLength;
+    }
 
     @Test
     public void testReadStripedFile() throws Exception {
@@ -145,47 +159,47 @@ public class TestWriteReadStripedFile {
           fileLength, true);
     }
 
-    private void testOneFileUsingDFSStripedInputStream(String src, int fileLength)
-        throws Exception {
-      testOneFileUsingDFSStripedInputStream(src, fileLength, false);
+    private void testOneFileUsingDFSStripedInputStream(
+        String src, int length) throws Exception {
+      testOneFileUsingDFSStripedInputStream(src, length, false);
     }
 
     private void testOneFileUsingDFSStripedInputStream(String src,
-        int fileLength, boolean withDataNodeFailure) throws Exception {
-      final byte[] expected = StripedFileTestUtil.generateBytes(fileLength);
+        int length, boolean withDataNodeFailure) throws Exception {
+      final byte[] expected = StripedFileTestUtil.generateBytes(length);
       Path srcPath = new Path(src);
       DFSTestUtil.writeFile(fs, srcPath, new String(expected));
       StripedFileTestUtil.waitBlockGroupsReported(fs, src);
 
-      StripedFileTestUtil.verifyLength(fs, srcPath, fileLength);
+      StripedFileTestUtil.verifyLength(fs, srcPath, length);
 
       if (withDataNodeFailure) {
-        // TODO: StripedFileTestUtil.random.nextInt(dataBlocks);
+        // TODO: StripedFileTestUtil.random.nextInt(DATA_BLOCKS);
         int dnIndex = 1;
         LOG.info("stop DataNode " + dnIndex);
         stopDataNode(srcPath, dnIndex);
       }
 
       byte[] smallBuf = new byte[1024];
-      byte[] largeBuf = new byte[fileLength + 100];
+      byte[] largeBuf = new byte[length + 100];
       StripedFileTestUtil.verifyPread(
-          fs, srcPath, fileLength, expected, largeBuf);
+          fs, srcPath, length, expected, largeBuf);
 
-      StripedFileTestUtil.verifyStatefulRead(fs, srcPath, fileLength, expected,
+      StripedFileTestUtil.verifyStatefulRead(fs, srcPath, length, expected,
           largeBuf);
-      StripedFileTestUtil.verifySeek(fs, srcPath, fileLength, ecPolicy,
-          blockGroupSize);
-      StripedFileTestUtil.verifyStatefulRead(fs, srcPath, fileLength, expected,
-          ByteBuffer.allocate(fileLength + 100));
-      StripedFileTestUtil.verifyStatefulRead(fs, srcPath, fileLength, expected,
+      StripedFileTestUtil.verifySeek(fs, srcPath, length, EC_POLICY,
+          BLOCK_GROUP_SIZE);
+      StripedFileTestUtil.verifyStatefulRead(fs, srcPath, length, expected,
+          ByteBuffer.allocate(length + 100));
+      StripedFileTestUtil.verifyStatefulRead(fs, srcPath, length, expected,
           smallBuf);
-      StripedFileTestUtil.verifyStatefulRead(fs, srcPath, fileLength, expected,
+      StripedFileTestUtil.verifyStatefulRead(fs, srcPath, length, expected,
           ByteBuffer.allocate(1024));
     }
 
     private void stopDataNode(Path path, int failedDNIdx)
         throws IOException {
-      BlockLocation[] locs = fs.getFileBlockLocations(path, 0, cellSize);
+      BlockLocation[] locs = fs.getFileBlockLocations(path, 0, CELL_SIZE);
       if (locs != null && locs.length > 0) {
         String name = (locs[0].getNames())[failedDNIdx];
         for (DataNode dn : cluster.getDataNodes()) {
@@ -199,12 +213,14 @@ public class TestWriteReadStripedFile {
     }
   }
 
-
+  /**
+   * Tests for basic striped file IO.
+   */
   @RunWith(JUnit4.class)
   public static class BasicStripedFileIOTest extends StripedFileIOTestBase {
     @Test
     public void testWriteReadUsingWebHdfs() throws Exception {
-      int fileLength = blockSize * dataBlocks + cellSize + 123;
+      int fileLength = BLOCK_SIZE * DATA_BLOCKS + CELL_SIZE + 123;
 
       final byte[] expected = StripedFileTestUtil.generateBytes(fileLength);
       FileSystem fs = WebHdfsTestUtil.getWebHdfsFileSystem(conf,
@@ -217,12 +233,13 @@ public class TestWriteReadStripedFile {
       byte[] smallBuf = new byte[1024];
       byte[] largeBuf = new byte[fileLength + 100];
       // TODO: HDFS-8797
-      //StripedFileTestUtil.verifyPread(fs, srcPath, fileLength, expected, largeBuf);
+      //StripedFileTestUtil.verifyPread(
+      //    fs, srcPath, fileLength, expected, largeBuf);
 
       StripedFileTestUtil.verifyStatefulRead(
           fs, srcPath, fileLength, expected, largeBuf);
       StripedFileTestUtil.verifySeek(
-          fs, srcPath, fileLength, ecPolicy, blockGroupSize);
+          fs, srcPath, fileLength, EC_POLICY, BLOCK_GROUP_SIZE);
       StripedFileTestUtil.verifyStatefulRead(
           fs, srcPath, fileLength, expected, smallBuf);
       // webhdfs doesn't support bytebuffer read
@@ -230,8 +247,8 @@ public class TestWriteReadStripedFile {
 
     @Test
     public void testConcat() throws Exception {
-      final byte[] data =
-          StripedFileTestUtil.generateBytes(blockSize * dataBlocks * 10 + 234);
+      final byte[] data = StripedFileTestUtil.generateBytes(
+          BLOCK_SIZE * DATA_BLOCKS * 10 + 234);
       int totalLength = 0;
 
       Random r = new Random();
@@ -243,7 +260,7 @@ public class TestWriteReadStripedFile {
       Path[] srcs = new Path[numFiles];
       for (int i = 0; i < numFiles; i++) {
         srcs[i] = new Path("/ec/testConcat_src_file_" + i);
-        int srcLength = r.nextInt(blockSize * dataBlocks * 2) + 1;
+        int srcLength = r.nextInt(BLOCK_SIZE * DATA_BLOCKS * 2) + 1;
         DFSTestUtil.writeFile(fs, srcs[i],
             Arrays.copyOfRange(data, totalLength, totalLength + srcLength));
         totalLength += srcLength;
@@ -257,7 +274,7 @@ public class TestWriteReadStripedFile {
     @Test
     public void testConcatWithDifferentECPolicy() throws Exception {
       final byte[] data =
-          StripedFileTestUtil.generateBytes(blockSize * dataBlocks);
+          StripedFileTestUtil.generateBytes(BLOCK_SIZE * DATA_BLOCKS);
       Path nonECFile = new Path("/non_ec_file");
       DFSTestUtil.writeFile(fs, nonECFile, data);
       Path target = new Path("/ec/non_ec_file");
