@@ -37,6 +37,7 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.hadoop.io.IOUtils;
 import org.apache.hadoop.mapreduce.Mapper;
+import org.apache.hadoop.tools.CopyListingFileStatus;
 import org.apache.hadoop.tools.DistCpConstants;
 import org.apache.hadoop.tools.DistCpOptions.FileAttribute;
 import org.apache.hadoop.tools.mapred.CopyMapper.FileAction;
@@ -90,7 +91,7 @@ public class RetriableFileCopyCommand extends RetriableCommand {
   @Override
   protected Object doExecute(Object... arguments) throws Exception {
     assert arguments.length == 4 : "Unexpected argument list.";
-    FileStatus source = (FileStatus)arguments[0];
+    CopyListingFileStatus source = (CopyListingFileStatus)arguments[0];
     assert !source.isDirectory() : "Unexpected file-status. Expected file.";
     Path target = (Path)arguments[1];
     Mapper.Context context = (Mapper.Context)arguments[2];
@@ -99,7 +100,7 @@ public class RetriableFileCopyCommand extends RetriableCommand {
     return doCopy(source, target, context, fileAttributes);
   }
 
-  private long doCopy(FileStatus sourceFileStatus, Path target,
+  private long doCopy(CopyListingFileStatus source, Path target,
       Mapper.Context context, EnumSet<FileAttribute> fileAttributes)
       throws IOException {
     final boolean toAppend = action == FileAction.APPEND;
@@ -109,26 +110,32 @@ public class RetriableFileCopyCommand extends RetriableCommand {
 
     try {
       if (LOG.isDebugEnabled()) {
-        LOG.debug("Copying " + sourceFileStatus.getPath() + " to " + target);
+        LOG.debug("Copying " + source.getPath() + " to " + target);
         LOG.debug("Target file path: " + targetPath);
       }
-      final Path sourcePath = sourceFileStatus.getPath();
+      final Path sourcePath = source.getPath();
       final FileSystem sourceFS = sourcePath.getFileSystem(configuration);
       final FileChecksum sourceChecksum = fileAttributes
           .contains(FileAttribute.CHECKSUMTYPE) ? sourceFS
           .getFileChecksum(sourcePath) : null;
 
-      final long offset = action == FileAction.APPEND ? targetFS.getFileStatus(
-          target).getLen() : 0;
-      long bytesRead = copyToFile(targetPath, targetFS, sourceFileStatus,
+      long offset = (action == FileAction.APPEND) ?
+          targetFS.getFileStatus(target).getLen() :
+          source.getChunkOffset();
+
+      long bytesRead = copyToFile(targetPath, targetFS, source,
           offset, context, fileAttributes, sourceChecksum);
 
-      compareFileLengths(sourceFileStatus, targetPath, configuration, bytesRead
-          + offset);
+      if (!source.isSplit()) {
+        compareFileLengths(source, targetPath, configuration, bytesRead
+            + offset);
+      }
       //At this point, src&dest lengths are same. if length==0, we skip checksum
       if ((bytesRead != 0) && (!skipCrc)) {
-        compareCheckSums(sourceFS, sourceFileStatus.getPath(), sourceChecksum,
-            targetFS, targetPath);
+        if (!source.isSplit()) {
+          compareCheckSums(sourceFS, source.getPath(), sourceChecksum,
+              targetFS, targetPath);
+        }
       }
       // it's not append case, thus we first write to a temporary file, rename
       // it to the target path.
@@ -160,8 +167,9 @@ public class RetriableFileCopyCommand extends RetriableCommand {
   }
 
   private long copyToFile(Path targetPath, FileSystem targetFS,
-      FileStatus sourceFileStatus, long sourceOffset, Mapper.Context context,
-      EnumSet<FileAttribute> fileAttributes, final FileChecksum sourceChecksum)
+      CopyListingFileStatus sourceFileStatus, long sourceOffset,
+      Mapper.Context context, EnumSet<FileAttribute> fileAttributes,
+      final FileChecksum sourceChecksum)
       throws IOException {
     FsPermission permission = FsPermission.getFileDefault().applyUMask(
         FsPermission.getUMask(targetFS.getConf()));
@@ -238,24 +246,35 @@ public class RetriableFileCopyCommand extends RetriableCommand {
   }
 
   @VisibleForTesting
-  long copyBytes(FileStatus sourceFileStatus, long sourceOffset,
+  long copyBytes(CopyListingFileStatus source2, long sourceOffset,
       OutputStream outStream, int bufferSize, Mapper.Context context)
       throws IOException {
-    Path source = sourceFileStatus.getPath();
+    Path source = source2.getPath();
     byte buf[] = new byte[bufferSize];
     ThrottledInputStream inStream = null;
     long totalBytesRead = 0;
 
+    long chunkLength = source2.getChunkLength();
+    boolean finished = false;
     try {
       inStream = getInputStream(source, context.getConfiguration());
       int bytesRead = readBytes(inStream, buf, sourceOffset);
       while (bytesRead >= 0) {
+        if (chunkLength > 0 &&
+            (totalBytesRead + bytesRead) >= chunkLength) {
+          bytesRead = (int)(chunkLength - totalBytesRead);
+          finished = true;
+        }
+
         totalBytesRead += bytesRead;
         if (action == FileAction.APPEND) {
           sourceOffset += bytesRead;
         }
         outStream.write(buf, 0, bytesRead);
-        updateContextStatus(totalBytesRead, context, sourceFileStatus);
+        updateContextStatus(totalBytesRead, context, source2);
+        if (finished) {
+          break;
+        }
         bytesRead = readBytes(inStream, buf, sourceOffset);
       }
       outStream.close();
