@@ -386,6 +386,8 @@ public class SimpleCopyListing extends CopyListing {
       printStats();
       LOG.info("Build file listing completed.");
       fileListWriter = null;
+    } catch (Exception e) {
+      e.printStackTrace();
     } finally {
       IOUtils.cleanup(LOG, fileListWriter);
     }

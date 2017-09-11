@@ -254,6 +254,8 @@ public class CopyCommitter extends FileOutputCommitter {
         } else {
           if (lastFileStatus == null) {
             lastFileStatus = new CopyListingFileStatus(srcFileStatus);
+            lastFileStatus.setChunkOffset(srcFileStatus.getChunkOffset());
+            lastFileStatus.setChunkLength(srcFileStatus.getChunkLength());
           } else {
             // Two neighboring chunks have to be consecutive ones for the same
             // file, for them to be merged
