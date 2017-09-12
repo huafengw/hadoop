@@ -243,7 +243,8 @@ public class DistributedFileSystem extends FileSystem {
   /**
    * The returned BlockLocation will have different formats for replicated
    * and erasure coded file.
-   * Please refer to {@link DFSClient#getBlockLocations(String, long, long)}
+   * Please refer to
+   * {@link FileSystem#getFileBlockLocations(FileStatus, long, long)}
    * for more details.
    */
   @Override
