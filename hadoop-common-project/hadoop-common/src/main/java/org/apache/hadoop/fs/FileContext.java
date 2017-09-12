@@ -1845,7 +1845,7 @@ public class FileContext {
      *   The subtree is traversed in the depth-first order.
      * If the path is a file, return the file's status and block locations.
      * Files across symbolic links are also returned.
-     *
+     * 
      * @param f is the path
      * @param recursive if the subdirectories need to be traversed recursively
      *
