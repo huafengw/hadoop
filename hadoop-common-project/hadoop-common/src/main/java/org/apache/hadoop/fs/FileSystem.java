@@ -811,7 +811,7 @@ public abstract class FileSystem extends Configured implements Closeable {
    * </pre>
    *
    * And if a file is erasure-coded, the returned BlockLocation are logical
-   * data groups.
+   * block groups.
    *
    * Suppose we have a RS_3_2 coded file (3 data units and 2 parity units).
    * 1. If the file size is less than one stripe size, say 2 * CELL_SIZE, then

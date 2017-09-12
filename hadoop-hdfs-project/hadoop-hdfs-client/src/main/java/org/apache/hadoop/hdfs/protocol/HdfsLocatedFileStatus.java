@@ -23,7 +23,6 @@ import java.util.EnumSet;
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
 import org.apache.hadoop.fs.FileEncryptionInfo;
-import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.LocatedFileStatus;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.permission.FsPermission;
@@ -85,7 +84,6 @@ public class HdfsLocatedFileStatus extends HdfsFileStatus {
    *
    * The returned BlockLocation will have different formats for replicated
    * and erasure coded file.
-   *
    * Please refer to
    * {@link org.apache.hadoop.fs.FileSystem#getFileBlockLocations
    * (FileStatus, long, long)}

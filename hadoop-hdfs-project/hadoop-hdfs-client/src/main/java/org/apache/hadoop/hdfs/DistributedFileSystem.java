@@ -1049,7 +1049,8 @@ public class DistributedFileSystem extends FileSystem {
   /**
    * The BlockLocation of returned LocatedFileStatus will have different
    * formats for replicated and erasure coded file.
-   * Please refer to {@link HdfsFileStatus#makeQualified(URI, Path)} for
+   * Please refer to
+   * {@link FileSystem#getFileBlockLocations(FileStatus, long, long)} for
    * more details.
    */
   @Override

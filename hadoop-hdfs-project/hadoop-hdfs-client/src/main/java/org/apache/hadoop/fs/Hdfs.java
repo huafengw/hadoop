@@ -176,7 +176,8 @@ public class Hdfs extends AbstractFileSystem {
   /**
    * The BlockLocation of returned LocatedFileStatus will have different
    * formats for replicated and erasure coded file.
-   * Please refer to {@link HdfsFileStatus#makeQualified(URI, Path)} for
+   * Please refer to
+   * {@link FileContext#getFileBlockLocations(Path, long, long)} for
    * more details.
    */
   @Override
