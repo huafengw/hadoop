@@ -118,7 +118,9 @@ public class Hdfs extends AbstractFileSystem {
   /**
    * The returned BlockLocation will have different formats for replicated
    * and erasure coded file.
-   * Please refer to {@link DFSClient#getBlockLocations(String, long, long)}
+   *
+   * Please refer to
+   * {@link FileContext#getFileBlockLocations(Path, long, long)}
    * for more details.
    */
   @Override

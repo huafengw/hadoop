@@ -801,9 +801,34 @@ public abstract class FileSystem extends Configured implements Closeable {
    * BlockLocation( { "localhost:9866" },  { "localhost" }, 0, file.getLen())
    * </pre>
    *
-   * In HDFS implementation, the returned BlockLocation array will have
-   * different formats for replicated and erasure coded file. Please refer to
-   * HDFS for more details.
+   * In HDFS, if file is three-replicated, the returned array contains
+   * elements like:
+   * <pre>
+   * BlockLocation(offset: 0, length: BLOCK_SIZE,
+   *   hosts: {"host1:9866", "host2:9866, host3:9866"})
+   * BlockLocation(offset: BLOCK_SIZE, length: BLOCK_SIZE,
+   *   hosts: {"host2:9866", "host3:9866, host4:9866"})
+   * </pre>
+   *
+   * And if a file is erasure-coded, the returned BlockLocation are logical
+   * data groups.
+   *
+   * Suppose we have a RS_3_2 coded file (3 data units and 2 parity units).
+   * 1. If the file size is less than one stripe size, say 2 * CELL_SIZE, then
+   * there will be one BlockLocation returned, with 0 offset, actual file size
+   * and 4 hosts (2 data blocks and 2 parity blocks) hosting the actual blocks.
+   * 3. If the file size is less than one group size but greater than one
+   * stripe size, then there will be one BlockLocation returned, with 0 offset,
+   * actual file size with 5 hosts (3 data blocks and 2 parity blocks) hosting
+   * the actual blocks.
+   * 4. If the file size is greater than one group size, 3 * BLOCK_SIZE + 123
+   * for example, then the result will be like:
+   * <pre>
+   * BlockLocation(offset: 0, length: 3 * BLOCK_SIZE, hosts: {"host1:9866",
+   *   "host2:9866","host3:9866","host4:9866","host5:9866"})
+   * BlockLocation(offset: 3 * BLOCK_SIZE, length: 123, hosts: {"host1:9866",
+   *   "host4:9866", "host5:9866"})
+   * </pre>
    *
    * @param file FilesStatus to get data from
    * @param start offset into the given file
@@ -2000,10 +2025,6 @@ public abstract class FileSystem extends Configured implements Closeable {
    * Return the file's status and block locations If the path is a file.
    *
    * If a returned status is a file, it contains the file's block locations.
-   * <p>
-   * In HDFS implementation, the BlockLocation of returned LocatedFileStatus
-   * will have different formats for replicated and erasure coded file. Please
-   * refer to HDFS for more details.
    *
    * @param f is the path
    *
@@ -2123,10 +2144,6 @@ public abstract class FileSystem extends Configured implements Closeable {
    * List the statuses and block locations of the files in the given path.
    * Does not guarantee to return the iterator that traverses statuses
    * of the files in a sorted order.
-   * <p>
-   * In HDFS implementation, the BlockLocation of returned LocatedFileStatus
-   * will have different formats for replicated and erasure coded file. Please
-   * refer to HDFS for more details.
    *
    * <pre>
    * If the path is a directory,

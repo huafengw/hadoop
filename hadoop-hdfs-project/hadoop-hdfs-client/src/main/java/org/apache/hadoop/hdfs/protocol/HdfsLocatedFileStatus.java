@@ -23,6 +23,7 @@ import java.util.EnumSet;
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
 import org.apache.hadoop.fs.FileEncryptionInfo;
+import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.LocatedFileStatus;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.permission.FsPermission;
@@ -82,38 +83,13 @@ public class HdfsLocatedFileStatus extends HdfsFileStatus {
    * This function is used to transform the underlying HDFS LocatedBlocks to
    * BlockLocations.
    *
-   * If this file is three-replicated, the returned array are just normal
-   * BlockLocations like:
-   * <pre>
-   * BlockLocation(offset: 0, length: BLOCK_SIZE,
-   *   hosts: {"host1:9866", "host2:9866, host3:9866"})
-   * BlockLocation(offset: BLOCK_SIZE, length: BLOCK_SIZE,
-   *   hosts: {"host2:9866", "host3:9866, host4:9866"})
-   * </pre>
-   *
-   * And if a file is erasure-coded, the returned BlockLocation are logical
-   * data groups.
-   *
-   * Suppose we have a RS_3_2 coded file (3 data units and 2 parity units).
-   * 1. If the file size is less than one stripe size, say 2 * CELL_SIZE, then
-   * there will be one BlockLocation returned, with 0 offset, actual file size
-   * and 4 hosts (2 data blocks and 2 parity blocks) hosting the actual blocks.
-   * 3. If the file size is less than one group size but greater than one
-   * stripe size, then there will be one BlockLocation returned, with 0 offset,
-   * actual file size with 5 hosts (3 data blocks and 2 parity blocks) hosting
-   * the actual blocks.
-   * 4. If the file size is greater than one group size, 3 * BLOCK_SIZE + 123
-   * for example, then the result will be like:
-   * <pre>
-   * BlockLocation(offset: 0, length: 3 * BLOCK_SIZE, hosts: {"host1:9866",
-   *   "host2:9866","host3:9866","host4:9866","host5:9866"})
-   * BlockLocation(offset: 3 * BLOCK_SIZE, length: 123, hosts: {"host1:9866",
-   *   "host4:9866", "host5:9866"})
-   * </pre>
+   * The returned BlockLocation will have different formats for replicated
+   * and erasure coded file.
    *
    * Please refer to
-   * {@link org.apache.hadoop.hdfs.TestDistributedFileSystemWithECFile} for
-   * more detailed cases.
+   * {@link org.apache.hadoop.fs.FileSystem#getFileBlockLocations
+   * (FileStatus, long, long)}
+   * for examples.
    */
   public final LocatedFileStatus makeQualifiedLocated(URI defaultUri,
       Path path) {

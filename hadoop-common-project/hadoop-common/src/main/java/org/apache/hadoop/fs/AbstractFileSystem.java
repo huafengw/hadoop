@@ -931,7 +931,8 @@ public abstract class AbstractFileSystem {
    *
    * In HDFS implementation, the BlockLocation of returned LocatedFileStatus
    * will have different formats for replicated and erasure coded file. Please
-   * refer to HDFS for more details.
+   * refer to {@link FileSystem#getFileBlockLocations(FileStatus, long, long)}
+   * for more details.
    */
   public RemoteIterator<LocatedFileStatus> listLocatedStatus(final Path f)
       throws AccessControlException, FileNotFoundException,
