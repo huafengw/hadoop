@@ -270,9 +270,8 @@ public class TestWriteReadStripedFile {
 
     byte[] smallBuf = new byte[1024];
     byte[] largeBuf = new byte[fileLength + 100];
-    // TODO: HDFS-8797
-    //StripedFileTestUtil
-    //    .verifyPread(fs, srcPath, fileLength, expected, largeBuf);
+    StripedFileTestUtil
+        .verifyPread(fs, srcPath, fileLength, expected, largeBuf, ecPolicy);
 
     StripedFileTestUtil
         .verifyStatefulRead(fs, srcPath, fileLength, expected, largeBuf);
