@@ -110,7 +110,7 @@ abstract class StripedReconstructor {
   // position in striped internal block
   private long positionInBlock;
   private StripedReader stripedReader;
-  private ThreadPoolExecutor stripedReadPool;
+  private ErasureCodingWorker erasureCodingWorker;
   private final CachingStrategy cachingStrategy;
   private long maxTargetLength = 0L;
   private final BitSet liveBitSet;
@@ -122,7 +122,7 @@ abstract class StripedReconstructor {
 
   StripedReconstructor(ErasureCodingWorker worker,
       StripedReconstructionInfo stripedReconInfo) {
-    this.stripedReadPool = worker.getStripedReadPool();
+    this.erasureCodingWorker = worker;
     this.datanode = worker.getDatanode();
     this.conf = worker.getConf();
     this.ecPolicy = stripedReconInfo.getEcPolicy();
@@ -225,7 +225,7 @@ abstract class StripedReconstructor {
   }
 
   CompletionService<Void> createReadService() {
-    return new ExecutorCompletionService<>(stripedReadPool);
+    return erasureCodingWorker.createReadService();
   }
 
   ExtendedBlock getBlockGroup() {
