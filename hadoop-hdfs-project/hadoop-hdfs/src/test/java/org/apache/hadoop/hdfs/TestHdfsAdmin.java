@@ -84,7 +84,8 @@ public class TestHdfsAdmin {
     fs.mkdirs(TEST_PATH);
     hdfsAdmin.allowSnapshot(TEST_PATH);
     assertTrue(hdfsAdmin.getSnapshottableDirListing().length == 1);
-    assertEquals(hdfsAdmin.getSnapshottableDirListing()[0].getFullPath(), TEST_PATH);
+    assertEquals(hdfsAdmin.getSnapshottableDirListing()[0].getFullPath(),
+        TEST_PATH);
     hdfsAdmin.disallowSnapshot(TEST_PATH);
     assertNull(hdfsAdmin.getSnapshottableDirListing());
   }
@@ -194,10 +195,8 @@ public class TestHdfsAdmin {
       policyNamesSet2.add(policy.getName());
     }
     // Ensure that we got the same set of policies in both cases.
-    assertTrue(
-        Sets.difference(policyNamesSet1, policyNamesSet2).isEmpty());
-    assertTrue(
-        Sets.difference(policyNamesSet2, policyNamesSet1).isEmpty());
+    assertTrue(Sets.difference(policyNamesSet1, policyNamesSet2).isEmpty());
+    assertTrue(Sets.difference(policyNamesSet2, policyNamesSet1).isEmpty());
   }
 
   private static String getKeyProviderURI() {
