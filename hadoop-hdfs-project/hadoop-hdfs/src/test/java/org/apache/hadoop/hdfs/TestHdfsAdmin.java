@@ -19,6 +19,7 @@ package org.apache.hadoop.hdfs;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
@@ -73,6 +74,19 @@ public class TestHdfsAdmin {
       cluster.shutdown();
       cluster = null;
     }
+  }
+
+  @Test
+  public void testSnapshotDirs() throws Exception {
+    HdfsAdmin hdfsAdmin = new HdfsAdmin(FileSystem.getDefaultUri(conf), conf);
+    FileSystem fs = FileSystem.get(conf);
+    assertNull(hdfsAdmin.getSnapshottableDirListing());
+    fs.mkdirs(TEST_PATH);
+    hdfsAdmin.allowSnapshot(TEST_PATH);
+    assertTrue(hdfsAdmin.getSnapshottableDirListing().length == 1);
+    assertEquals(hdfsAdmin.getSnapshottableDirListing()[0].getFullPath(), TEST_PATH);
+    hdfsAdmin.disallowSnapshot(TEST_PATH);
+    assertNull(hdfsAdmin.getSnapshottableDirListing());
   }
 
   /**
@@ -180,9 +194,9 @@ public class TestHdfsAdmin {
       policyNamesSet2.add(policy.getName());
     }
     // Ensure that we got the same set of policies in both cases.
-    Assert.assertTrue(
+    assertTrue(
         Sets.difference(policyNamesSet1, policyNamesSet2).isEmpty());
-    Assert.assertTrue(
+    assertTrue(
         Sets.difference(policyNamesSet2, policyNamesSet1).isEmpty());
   }
 
@@ -198,7 +212,7 @@ public class TestHdfsAdmin {
   @Test
   public void testGetKeyProvider() throws IOException {
     HdfsAdmin hdfsAdmin = new HdfsAdmin(FileSystem.getDefaultUri(conf), conf);
-    Assert.assertNull("should return null for an non-encrypted cluster",
+    assertNull("should return null for an non-encrypted cluster",
         hdfsAdmin.getKeyProvider());
 
     shutDownCluster();
