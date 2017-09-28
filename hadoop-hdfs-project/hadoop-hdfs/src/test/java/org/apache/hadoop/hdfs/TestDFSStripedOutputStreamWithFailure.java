@@ -81,7 +81,7 @@ public class TestDFSStripedOutputStreamWithFailure {
   private int dataBlocks;
   private int parityBlocks;
   private int cellSize;
-  private final int stripesPerBlock = 4;
+  private final int stripesPerBlock = 2;
   private int blockSize;
   private int blockGroupSize;
 
@@ -189,7 +189,7 @@ public class TestDFSStripedOutputStreamWithFailure {
   private List<Integer> lengths;
 
   Integer getLength(int i) {
-    return i >= 0 && i < lengths.size()? lengths.get(i): null;
+    return i >= 0 && i < lengths.size() ? lengths.get(i): null;
   }
 
   private static final Random RANDOM = new Random();
@@ -260,7 +260,8 @@ public class TestDFSStripedOutputStreamWithFailure {
 
   @Test(timeout=240000)
   public void testBlockTokenExpired() throws Exception {
-    final int length = dataBlocks * (blockSize - cellSize);
+    // Make sure killPos is greater than the length of one stripe
+    final int length = dataBlocks * cellSize * 3;
     final HdfsConfiguration conf = newHdfsConfiguration();
 
     conf.setBoolean(DFSConfigKeys.DFS_BLOCK_ACCESS_TOKEN_ENABLE_KEY, true);
@@ -300,7 +301,7 @@ public class TestDFSStripedOutputStreamWithFailure {
       cluster.triggerHeartbeats();
       DatanodeInfo[] info = dfs.getClient().datanodeReport(
           DatanodeReportType.LIVE);
-      assertEquals("Mismatches number of live Dns ", numDatanodes, info.length);
+      assertEquals("Mismatches number of live Dns", numDatanodes, info.length);
       final Path dirFile = new Path(dir, "ecfile");
       LambdaTestUtils.intercept(
           IOException.class,
@@ -337,7 +338,7 @@ public class TestDFSStripedOutputStreamWithFailure {
       cluster.triggerHeartbeats();
       DatanodeInfo[] info = dfs.getClient().datanodeReport(
           DatanodeReportType.LIVE);
-      assertEquals("Mismatches number of live Dns ", numDatanodes, info.length);
+      assertEquals("Mismatches number of live Dns", numDatanodes, info.length);
       Path srcPath = new Path(dir, "testAddBlockWhenNoSufficientParityNodes");
       int fileLength = cellSize - 1000;
       final byte[] expected = StripedFileTestUtil.generateBytes(fileLength);
@@ -356,7 +357,7 @@ public class TestDFSStripedOutputStreamWithFailure {
       try {
         LOG.info("runTest: dn=" + dn + ", length=" + length);
         setup(conf);
-        runTest(length, new int[]{length/2}, new int[]{dn}, false);
+        runTest(length, new int[]{length / 2}, new int[]{dn}, false);
       } catch (Throwable e) {
         final String err = "failed, dn=" + dn + ", length=" + length
             + StringUtils.stringifyException(e);
@@ -506,10 +507,10 @@ public class TestDFSStripedOutputStreamWithFailure {
     long oldGS = -1; // the old GS before bumping
     List<Long> gsList = new ArrayList<>();
     final List<DatanodeInfo> killedDN = new ArrayList<>();
-    int numKilled=0;
+    int numKilled = 0;
     for(; pos.get() < length;) {
       final int i = pos.getAndIncrement();
-      if (numKilled < killPos.length &&  i == killPos[numKilled]) {
+      if (numKilled < killPos.length && i == killPos[numKilled]) {
         assertTrue(firstGS != -1);
         final long gs = getGenerationStamp(stripedOut);
         if (numKilled == 0) {
@@ -630,8 +631,6 @@ public class TestDFSStripedOutputStreamWithFailure {
 
   private void run(int offset) {
     int base = getBase();
-    // TODO: Fix and re-enable these flaky tests. See HDFS-12417.
-    assumeTrue("Test has been temporarily disabled. See HDFS-12417.", false);
     assumeTrue(base >= 0);
     final int i = offset + base;
     final Integer length = getLength(i);
