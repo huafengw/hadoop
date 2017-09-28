@@ -241,7 +241,7 @@ public class TestDFSStripedOutputStreamWithFailure {
     return conf;
   }
 
-  @Test(timeout=240000)
+  @Test(timeout=300000)
   public void testMultipleDatanodeFailure56() throws Exception {
     runTestWithMultipleFailure(getLength(56));
   }
