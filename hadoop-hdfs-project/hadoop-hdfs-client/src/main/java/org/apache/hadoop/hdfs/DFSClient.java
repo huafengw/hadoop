@@ -2096,6 +2096,17 @@ public class DFSClient implements java.io.Closeable, RemotePeerFactory,
   }
 
   /**
+   * List snapshottable directories. Incrementally fetches results from the server.
+   * @return A RemoteIterator which returns SnapshottableDirectoryStatus objects.
+   * @throws IOException
+   */
+  public RemoteIterator<SnapshottableDirectoryStatus> listSnapshottableDirectories()
+    throws IOException {
+    checkOpen();
+    return null;
+  }
+
+  /**
    * Allow snapshot on a directory.
    *
    * @see ClientProtocol#allowSnapshot(String snapshotRoot)

@@ -177,13 +177,13 @@ public class HdfsAdmin {
   }
 
   /**
-   * Get all the current snapshottable directories.
-   * @return All the current snapshottable directories
+   * List snapshottable directories. Incrementally fetches results from the server.
+   * @return A RemoteIterator which returns SnapshottableDirectoryStatus objects.
    * @throws IOException
    */
-  public SnapshottableDirectoryStatus[] getSnapshottableDirListing()
+  public RemoteIterator<SnapshottableDirectoryStatus> listSnapshottableDirectories()
       throws IOException {
-    return dfs.getSnapshottableDirListing();
+    return dfs.listSnapshottableDirectories();
   }
 
   /**

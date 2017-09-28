@@ -1887,6 +1887,16 @@ public class DistributedFileSystem extends FileSystem {
     return dfs.getSnapshottableDirListing();
   }
 
+  /**
+   * List snapshottable directories. Incrementally fetches results from the server.
+   * @return A RemoteIterator which returns SnapshottableDirectoryStatus objects.
+   * @throws IOException
+   */
+  public RemoteIterator<SnapshottableDirectoryStatus> listSnapshottableDirectories()
+    throws IOException {
+    return dfs.listSnapshottableDirectories();
+  }
+
   @Override
   public void deleteSnapshot(final Path snapshotDir, final String snapshotName)
       throws IOException {
