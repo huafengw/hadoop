@@ -1888,12 +1888,14 @@ public class DistributedFileSystem extends FileSystem {
   }
 
   /**
-   * List snapshottable directories. Incrementally fetches results from the server.
-   * @return A RemoteIterator which returns SnapshottableDirectoryStatus objects.
+   * List snapshottable directories. Incrementally fetches results from
+   * the server.
+   * @return A RemoteIterator which returns SnapshottableDirectoryStatus
+   *         objects.
    * @throws IOException
    */
-  public RemoteIterator<SnapshottableDirectoryStatus> listSnapshottableDirectories()
-    throws IOException {
+  public RemoteIterator<SnapshottableDirectoryStatus>
+      listSnapshottableDirectories() throws IOException {
     return dfs.listSnapshottableDirectories();
   }
 

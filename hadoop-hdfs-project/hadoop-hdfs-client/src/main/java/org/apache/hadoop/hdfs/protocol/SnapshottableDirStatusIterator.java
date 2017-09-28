@@ -24,21 +24,24 @@ import org.apache.htrace.core.Tracer;
 import java.io.IOException;
 
 public class SnapshottableDirStatusIterator
-  extends BatchedRemoteIterator<Long, SnapshottableDirectoryStatus>{
+  extends BatchedRemoteIterator<Long, SnapshottableDirectoryStatus> {
 
   private final ClientProtocol namenode;
   private final Tracer tracer;
 
-  public SnapshottableDirStatusIterator(ClientProtocol namenode, Tracer tracer) {
+  public SnapshottableDirStatusIterator(ClientProtocol namenode,
+      Tracer tracer) {
     super((long) 0);
     this.namenode = namenode;
     this.tracer = tracer;
   }
 
   @Override
-  public BatchedEntries<SnapshottableDirectoryStatus> makeRequest(Long prevKey) throws IOException {
-    try (TraceScope ignored = tracer.newScope("listSnapshottableDirectories")) {
-      return null;
+  public BatchedEntries<SnapshottableDirectoryStatus> makeRequest(Long prevKey)
+      throws IOException {
+    try (TraceScope ignored = tracer.newScope(
+        "listSnapshottableDirectories")) {
+      return namenode.listSnapshottableDirectories(prevKey);
     }
   }
 

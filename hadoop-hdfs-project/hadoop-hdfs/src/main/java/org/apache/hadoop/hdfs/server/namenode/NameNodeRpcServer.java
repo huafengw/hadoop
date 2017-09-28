@@ -50,6 +50,7 @@ import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.ReconfigurationTaskStatus;
 import org.apache.hadoop.crypto.CryptoProtocolVersion;
+import org.apache.hadoop.fs.BatchedRemoteIterator;
 import org.apache.hadoop.fs.BatchedRemoteIterator.BatchedEntries;
 import org.apache.hadoop.hdfs.AddBlockFlag;
 import org.apache.hadoop.fs.CacheFlag;
@@ -1849,6 +1850,13 @@ public class NameNodeRpcServer implements NamenodeProtocols {
         .getSnapshottableDirListing();
     metrics.incrListSnapshottableDirOps();
     return status;
+  }
+
+  @Override
+  public BatchedEntries<SnapshottableDirectoryStatus>
+      listSnapshottableDirectories(Long prevID) throws IOException {
+    checkNNStartup();
+    return namesystem.listSnapshottableDirectories(prevID);
   }
 
   @Override // ClientProtocol

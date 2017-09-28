@@ -76,19 +76,19 @@ public class TestHdfsAdmin {
     }
   }
 
-  @Test
-  public void testSnapshotDirs() throws Exception {
-    HdfsAdmin hdfsAdmin = new HdfsAdmin(FileSystem.getDefaultUri(conf), conf);
-    FileSystem fs = FileSystem.get(conf);
-    assertNull(hdfsAdmin.getSnapshottableDirListing());
-    fs.mkdirs(TEST_PATH);
-    hdfsAdmin.allowSnapshot(TEST_PATH);
-    assertTrue(hdfsAdmin.getSnapshottableDirListing().length == 1);
-    assertEquals(hdfsAdmin.getSnapshottableDirListing()[0].getFullPath(),
-        TEST_PATH);
-    hdfsAdmin.disallowSnapshot(TEST_PATH);
-    assertNull(hdfsAdmin.getSnapshottableDirListing());
-  }
+//  @Test
+//  public void testSnapshotDirs() throws Exception {
+//    HdfsAdmin hdfsAdmin = new HdfsAdmin(FileSystem.getDefaultUri(conf), conf);
+//    FileSystem fs = FileSystem.get(conf);
+//    assertNull(hdfsAdmin.getSnapshottableDirListing());
+//    fs.mkdirs(TEST_PATH);
+//    hdfsAdmin.allowSnapshot(TEST_PATH);
+//    assertTrue(hdfsAdmin.getSnapshottableDirListing().length == 1);
+//    assertEquals(hdfsAdmin.getSnapshottableDirListing()[0].getFullPath(),
+//        TEST_PATH);
+//    hdfsAdmin.disallowSnapshot(TEST_PATH);
+//    assertNull(hdfsAdmin.getSnapshottableDirListing());
+//  }
 
   /**
    * Test that we can set and clear quotas via {@link HdfsAdmin}.

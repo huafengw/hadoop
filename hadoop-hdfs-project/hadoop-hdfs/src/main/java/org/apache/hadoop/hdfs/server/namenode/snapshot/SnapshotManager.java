@@ -17,11 +17,6 @@
  */
 package org.apache.hadoop.hdfs.server.namenode.snapshot;
 
-import static org.apache.hadoop.hdfs.DFSConfigKeys.DFS_NAMENODE_SNAPSHOT_CAPTURE_OPENFILES;
-import static org.apache.hadoop.hdfs.DFSConfigKeys.DFS_NAMENODE_SNAPSHOT_CAPTURE_OPENFILES_DEFAULT;
-import static org.apache.hadoop.hdfs.DFSConfigKeys.DFS_NAMENODE_SNAPSHOT_SKIP_CAPTURE_ACCESSTIME_ONLY_CHANGE;
-import static org.apache.hadoop.hdfs.DFSConfigKeys.DFS_NAMENODE_SNAPSHOT_SKIP_CAPTURE_ACCESSTIME_ONLY_CHANGE_DEFAULT;
-
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
@@ -31,13 +26,17 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.SortedMap;
+import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.management.ObjectName;
 
+import com.google.common.collect.Lists;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.BatchedRemoteIterator.BatchedListEntries;
 import org.apache.hadoop.hdfs.DFSUtil;
 import org.apache.hadoop.hdfs.DFSUtilClient;
 import org.apache.hadoop.hdfs.protocol.HdfsFileStatus;
@@ -57,6 +56,8 @@ import org.apache.hadoop.hdfs.server.namenode.LeaseManager;
 import org.apache.hadoop.metrics2.util.MBeans;
 
 import com.google.common.base.Preconditions;
+
+import static org.apache.hadoop.hdfs.DFSConfigKeys.*;
 
 /**
  * Manage snapshottable directories and their snapshots.
@@ -89,13 +90,17 @@ public class SnapshotManager implements SnapshotStatsMXBean {
 
   private boolean allowNestedSnapshots = false;
   private int snapshotCounter = 0;
+  private final int maxListStatusResponses;
   
   /** All snapshottable directories in the namesystem. */
-  private final Map<Long, INodeDirectory> snapshottables =
-      new HashMap<Long, INodeDirectory>();
+  private final TreeMap<Long, INodeDirectory> snapshottables =
+      new TreeMap<>();
 
   public SnapshotManager(final Configuration conf, final FSDirectory fsdir) {
     this.fsdir = fsdir;
+    this.maxListStatusResponses = conf.getInt(
+      DFS_NAMENODE_LIST_SNAPSHOTTABLE_DIRECTORIES_NUM_RESPONSES,
+      DFS_NAMENODE_LIST_SNAPSHOTTABLE_DIRECTORIES_NUM_RESPONSES_DEFAULT);
     this.captureOpenFiles = conf.getBoolean(
         DFS_NAMENODE_SNAPSHOT_CAPTURE_OPENFILES,
         DFS_NAMENODE_SNAPSHOT_CAPTURE_OPENFILES_DEFAULT);
@@ -390,7 +395,45 @@ public class SnapshotManager implements SnapshotStatsMXBean {
     return statusList.toArray(
         new SnapshottableDirectoryStatus[statusList.size()]);
   }
-  
+
+  /**
+   * Cursor-based listing of SnapshottableDirectoryStatus.
+   */
+  public BatchedListEntries<SnapshottableDirectoryStatus>
+      listSnapshottableDirectories(String userName, Long preID)
+      throws IOException {
+    if (snapshottables.isEmpty()) {
+      return new BatchedListEntries<>(Lists.newArrayList(), false);
+    }
+    SortedMap<Long, INodeDirectory> tailMap =
+        snapshottables.tailMap(preID, false);
+    final int numResponses = Math.min(maxListStatusResponses, tailMap.size());
+    final List<SnapshottableDirectoryStatus> statuses = new ArrayList<>();
+
+    int count = 0;
+    for (INodeDirectory dir : snapshottables.values()) {
+      if (userName == null || userName.equals(dir.getUserName())) {
+        SnapshottableDirectoryStatus status = new SnapshottableDirectoryStatus(
+          dir.getModificationTime(), dir.getAccessTime(),
+          dir.getFsPermission(), EnumSet.noneOf(HdfsFileStatus.Flags.class),
+          dir.getUserName(), dir.getGroupName(),
+          dir.getLocalNameBytes(), dir.getId(),
+          dir.getChildrenNum(Snapshot.CURRENT_STATE_ID),
+          dir.getDirectorySnapshottableFeature().getNumSnapshots(),
+          dir.getDirectorySnapshottableFeature().getSnapshotQuota(),
+          dir.getParent() == null ? DFSUtilClient.EMPTY_BYTES :
+            DFSUtil.string2Bytes(dir.getParent().getFullPathName()));
+        statuses.add(status);
+        count++;
+        if (count > numResponses) {
+          break;
+        }
+      }
+    }
+    final boolean hasMore = (numResponses < tailMap.size());
+    return new BatchedListEntries<>(statuses, hasMore);
+  }
+
   /**
    * Compute the difference between two snapshots of a directory, or between a
    * snapshot of the directory and its current tree.
