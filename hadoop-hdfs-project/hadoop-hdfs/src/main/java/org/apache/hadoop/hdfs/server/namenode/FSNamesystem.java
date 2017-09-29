@@ -6354,11 +6354,9 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
       listSnapshottableDirectories(Long prevID) throws IOException {
     final String operationName = "listSnapshottableDirectories";
     boolean success = false;
-    checkSuperuserPrivilege();
     checkOperation(OperationCategory.READ);
     readLock();
     try {
-      checkSuperuserPrivilege();
       checkOperation(OperationCategory.READ);
       final BatchedListEntries<SnapshottableDirectoryStatus> ret =
           FSDirSnapshotOp.listSnapshottableDirectories(
