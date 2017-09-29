@@ -17,14 +17,22 @@
  */
 package org.apache.hadoop.hdfs.protocol;
 
+import org.apache.hadoop.classification.InterfaceAudience;
+import org.apache.hadoop.classification.InterfaceStability;
 import org.apache.hadoop.fs.BatchedRemoteIterator;
 import org.apache.htrace.core.TraceScope;
 import org.apache.htrace.core.Tracer;
 
 import java.io.IOException;
 
+/**
+ * SnapshottableDirStatusIterator is a remote iterator that iterates over
+ * snapshottable directories.
+ */
+@InterfaceAudience.Private
+@InterfaceStability.Evolving
 public class SnapshottableDirStatusIterator
-  extends BatchedRemoteIterator<Long, SnapshottableDirectoryStatus> {
+    extends BatchedRemoteIterator<Long, SnapshottableDirectoryStatus> {
 
   private final ClientProtocol namenode;
   private final Tracer tracer;

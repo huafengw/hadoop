@@ -91,7 +91,7 @@ public class TestSnapshottableDirListing {
   }
 
   /**
-   * Test listing all the snapshottable directories using iterator
+   * Test listing all the snapshottable directories using iterator.
    */
   @Test (timeout=60000)
   public void testListSnapshottableDir() throws Exception {
@@ -103,7 +103,6 @@ public class TestSnapshottableDirListing {
     assertFalse(it.hasNext());
 
     // Make root as snapshottable
-    final Path root = new Path("/");
     hdfs.allowSnapshot(root);
     it = hdfs.listSnapshottableDirectories();
     assertTrue(it.hasNext());
