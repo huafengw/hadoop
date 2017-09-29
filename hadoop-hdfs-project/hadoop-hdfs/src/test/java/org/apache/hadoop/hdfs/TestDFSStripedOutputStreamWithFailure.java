@@ -26,6 +26,7 @@ import org.apache.hadoop.fs.CommonConfigurationKeysPublic;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hdfs.client.HdfsClientConfigKeys;
+import org.apache.hadoop.hdfs.protocol.AddErasureCodingPolicyResponse;
 import org.apache.hadoop.hdfs.protocol.DatanodeInfo;
 import org.apache.hadoop.hdfs.protocol.ErasureCodingPolicy;
 import org.apache.hadoop.hdfs.protocol.HdfsConstants.DatanodeReportType;
@@ -38,6 +39,7 @@ import org.apache.hadoop.hdfs.server.blockmanagement.BlockPlacementPolicy;
 import org.apache.hadoop.hdfs.server.datanode.DataNode;
 import org.apache.hadoop.hdfs.server.namenode.NameNode;
 import org.apache.hadoop.io.erasurecode.CodecUtil;
+import org.apache.hadoop.io.erasurecode.ECSchema;
 import org.apache.hadoop.io.erasurecode.ErasureCodeNative;
 import org.apache.hadoop.io.erasurecode.rawcoder.NativeRSRawErasureCoderFactory;
 import org.apache.hadoop.security.token.Token;
@@ -77,30 +79,29 @@ public class TestDFSStripedOutputStreamWithFailure {
         .getLogger().setLevel(Level.ALL);
   }
 
+  private final int cellSize = 64 * 1024; //64k
+  private final int stripesPerBlock = 4;
   private ErasureCodingPolicy ecPolicy;
   private int dataBlocks;
   private int parityBlocks;
-  private int cellSize;
-  private final int stripesPerBlock = 2;
   private int blockSize;
   private int blockGroupSize;
 
   private static final int FLUSH_POS =
       9 * DFSConfigKeys.DFS_BYTES_PER_CHECKSUM_DEFAULT + 1;
 
-  public ErasureCodingPolicy getEcPolicy() {
-    return StripedFileTestUtil.getDefaultECPolicy();
+  public ECSchema getEcSchema() {
+    return StripedFileTestUtil.getDefaultECPolicy().getSchema();
   }
 
   /*
    * Initialize erasure coding policy.
    */
   @Before
-  public void init(){
-    ecPolicy = getEcPolicy();
+  public void init() {
+    ecPolicy = new ErasureCodingPolicy(getEcSchema(), cellSize);
     dataBlocks = ecPolicy.getNumDataUnits();
     parityBlocks = ecPolicy.getNumParityUnits();
-    cellSize = ecPolicy.getCellSize();
     blockSize = cellSize * stripesPerBlock;
     blockGroupSize = blockSize * dataBlocks;
     dnIndexSuite = getDnIndexSuite();
@@ -220,6 +221,10 @@ public class TestDFSStripedOutputStreamWithFailure {
     cluster = new MiniDFSCluster.Builder(conf).numDataNodes(numDNs).build();
     cluster.waitActive();
     dfs = cluster.getFileSystem();
+    AddErasureCodingPolicyResponse[] res =
+        dfs.addErasureCodingPolicies(new ErasureCodingPolicy[]{ecPolicy});
+    ecPolicy = res[0].getPolicy();
+    dfs.enableErasureCodingPolicy(ecPolicy.getName());
     DFSTestUtil.enableAllECPolicies(dfs);
     dfs.mkdirs(dir);
     dfs.setErasureCodingPolicy(dir, ecPolicy.getName());
@@ -307,7 +312,7 @@ public class TestDFSStripedOutputStreamWithFailure {
           IOException.class,
           "File " + dirFile + " could only be written to " +
               numDatanodes + " of the " + dataBlocks + " required nodes for " +
-              getEcPolicy().getName(),
+              ecPolicy.getName(),
           () -> {
             try (FSDataOutputStream out = dfs.create(dirFile, true)) {
               out.write("something".getBytes());
