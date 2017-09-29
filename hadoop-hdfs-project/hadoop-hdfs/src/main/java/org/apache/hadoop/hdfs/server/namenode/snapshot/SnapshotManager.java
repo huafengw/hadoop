@@ -93,14 +93,13 @@ public class SnapshotManager implements SnapshotStatsMXBean {
   private final int maxListStatusResponses;
   
   /** All snapshottable directories in the namesystem. */
-  private final TreeMap<Long, INodeDirectory> snapshottables =
-      new TreeMap<>();
+  private final TreeMap<Long, INodeDirectory> snapshottables = new TreeMap<>();
 
   public SnapshotManager(final Configuration conf, final FSDirectory fsdir) {
     this.fsdir = fsdir;
     this.maxListStatusResponses = conf.getInt(
-      DFS_NAMENODE_LIST_SNAPSHOTTABLE_DIRECTORIES_NUM_RESPONSES,
-      DFS_NAMENODE_LIST_SNAPSHOTTABLE_DIRECTORIES_NUM_RESPONSES_DEFAULT);
+        DFS_NAMENODE_LIST_SNAPSHOTTABLE_DIRECTORIES_NUM_RESPONSES,
+        DFS_NAMENODE_LIST_SNAPSHOTTABLE_DIRECTORIES_NUM_RESPONSES_DEFAULT);
     this.captureOpenFiles = conf.getBoolean(
         DFS_NAMENODE_SNAPSHOT_CAPTURE_OPENFILES,
         DFS_NAMENODE_SNAPSHOT_CAPTURE_OPENFILES_DEFAULT);
@@ -373,24 +372,8 @@ public class SnapshotManager implements SnapshotStatsMXBean {
     if (snapshottables.isEmpty()) {
       return null;
     }
-    
-    List<SnapshottableDirectoryStatus> statusList = 
-        new ArrayList<SnapshottableDirectoryStatus>();
-    for (INodeDirectory dir : snapshottables.values()) {
-      if (userName == null || userName.equals(dir.getUserName())) {
-        SnapshottableDirectoryStatus status = new SnapshottableDirectoryStatus(
-            dir.getModificationTime(), dir.getAccessTime(),
-            dir.getFsPermission(), EnumSet.noneOf(HdfsFileStatus.Flags.class),
-            dir.getUserName(), dir.getGroupName(),
-            dir.getLocalNameBytes(), dir.getId(),
-            dir.getChildrenNum(Snapshot.CURRENT_STATE_ID),
-            dir.getDirectorySnapshottableFeature().getNumSnapshots(),
-            dir.getDirectorySnapshottableFeature().getSnapshotQuota(),
-            dir.getParent() == null ? DFSUtilClient.EMPTY_BYTES :
-                DFSUtil.string2Bytes(dir.getParent().getFullPathName()));
-        statusList.add(status);
-      }
-    }
+    List<SnapshottableDirectoryStatus> statusList = filterSnapshottableDirs(
+        snapshottables, userName, snapshottables.size());
     Collections.sort(statusList, SnapshottableDirectoryStatus.COMPARATOR);
     return statusList.toArray(
         new SnapshottableDirectoryStatus[statusList.size()]);
@@ -408,30 +391,37 @@ public class SnapshotManager implements SnapshotStatsMXBean {
     SortedMap<Long, INodeDirectory> tailMap =
         snapshottables.tailMap(preID, false);
     final int numResponses = Math.min(maxListStatusResponses, tailMap.size());
-    final List<SnapshottableDirectoryStatus> statuses = new ArrayList<>();
+    final List<SnapshottableDirectoryStatus> statuses =
+        filterSnapshottableDirs(tailMap, userName, numResponses);
+    final boolean hasMore = (numResponses < tailMap.size());
+    return new BatchedListEntries<>(statuses, hasMore);
+  }
 
+  private List<SnapshottableDirectoryStatus> filterSnapshottableDirs(
+      SortedMap<Long, INodeDirectory> sortedDirs, String userName,
+      int expectedSize) {
+    final List<SnapshottableDirectoryStatus> statuses = new ArrayList<>();
     int count = 0;
-    for (INodeDirectory dir : snapshottables.values()) {
+    for (INodeDirectory dir : sortedDirs.values()) {
       if (userName == null || userName.equals(dir.getUserName())) {
         SnapshottableDirectoryStatus status = new SnapshottableDirectoryStatus(
-          dir.getModificationTime(), dir.getAccessTime(),
-          dir.getFsPermission(), EnumSet.noneOf(HdfsFileStatus.Flags.class),
-          dir.getUserName(), dir.getGroupName(),
-          dir.getLocalNameBytes(), dir.getId(),
-          dir.getChildrenNum(Snapshot.CURRENT_STATE_ID),
-          dir.getDirectorySnapshottableFeature().getNumSnapshots(),
-          dir.getDirectorySnapshottableFeature().getSnapshotQuota(),
-          dir.getParent() == null ? DFSUtilClient.EMPTY_BYTES :
-            DFSUtil.string2Bytes(dir.getParent().getFullPathName()));
+            dir.getModificationTime(), dir.getAccessTime(),
+            dir.getFsPermission(), EnumSet.noneOf(HdfsFileStatus.Flags.class),
+            dir.getUserName(), dir.getGroupName(),
+            dir.getLocalNameBytes(), dir.getId(),
+            dir.getChildrenNum(Snapshot.CURRENT_STATE_ID),
+            dir.getDirectorySnapshottableFeature().getNumSnapshots(),
+            dir.getDirectorySnapshottableFeature().getSnapshotQuota(),
+            dir.getParent() == null ? DFSUtilClient.EMPTY_BYTES :
+              DFSUtil.string2Bytes(dir.getParent().getFullPathName()));
         statuses.add(status);
         count++;
-        if (count > numResponses) {
+        if (count > expectedSize) {
           break;
         }
       }
     }
-    final boolean hasMore = (numResponses < tailMap.size());
-    return new BatchedListEntries<>(statuses, hasMore);
+    return statuses;
   }
 
   /**

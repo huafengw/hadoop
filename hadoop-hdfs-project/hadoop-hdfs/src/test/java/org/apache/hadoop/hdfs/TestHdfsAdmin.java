@@ -42,6 +42,7 @@ import org.apache.hadoop.fs.RemoteIterator;
 import org.apache.hadoop.hdfs.client.HdfsAdmin;
 import org.apache.hadoop.hdfs.protocol.BlockStoragePolicy;
 import org.apache.hadoop.hdfs.protocol.OpenFileEntry;
+import org.apache.hadoop.hdfs.protocol.SnapshottableDirectoryStatus;
 import org.apache.hadoop.hdfs.server.blockmanagement.BlockStoragePolicySuite;
 import org.junit.After;
 import org.junit.Assert;
@@ -76,19 +77,26 @@ public class TestHdfsAdmin {
     }
   }
 
-//  @Test
-//  public void testSnapshotDirs() throws Exception {
-//    HdfsAdmin hdfsAdmin = new HdfsAdmin(FileSystem.getDefaultUri(conf), conf);
-//    FileSystem fs = FileSystem.get(conf);
-//    assertNull(hdfsAdmin.getSnapshottableDirListing());
-//    fs.mkdirs(TEST_PATH);
-//    hdfsAdmin.allowSnapshot(TEST_PATH);
-//    assertTrue(hdfsAdmin.getSnapshottableDirListing().length == 1);
-//    assertEquals(hdfsAdmin.getSnapshottableDirListing()[0].getFullPath(),
-//        TEST_PATH);
-//    hdfsAdmin.disallowSnapshot(TEST_PATH);
-//    assertNull(hdfsAdmin.getSnapshottableDirListing());
-//  }
+  @Test
+  public void testSnapshotDirs() throws Exception {
+    HdfsAdmin hdfsAdmin = new HdfsAdmin(FileSystem.getDefaultUri(conf), conf);
+    FileSystem fs = FileSystem.get(conf);
+    RemoteIterator<SnapshottableDirectoryStatus> it =
+        hdfsAdmin.listSnapshottableDirectories();
+    assertFalse(it.hasNext());
+
+    fs.mkdirs(TEST_PATH);
+    hdfsAdmin.allowSnapshot(TEST_PATH);
+    it = hdfsAdmin.listSnapshottableDirectories();
+    assertTrue(it.hasNext());
+    SnapshottableDirectoryStatus status = it.next();
+    assertEquals(status.getFullPath(), TEST_PATH);
+    assertFalse(it.hasNext());
+
+    hdfsAdmin.disallowSnapshot(TEST_PATH);
+    it = hdfsAdmin.listSnapshottableDirectories();
+    assertFalse(it.hasNext());
+  }
 
   /**
    * Test that we can set and clear quotas via {@link HdfsAdmin}.
