@@ -48,6 +48,7 @@ import org.apache.hadoop.hdfs.protocol.CachePoolInfo;
 import org.apache.hadoop.hdfs.protocol.EncryptionZone;
 import org.apache.hadoop.hdfs.protocol.HdfsConstants;
 import org.apache.hadoop.hdfs.protocol.OpenFileEntry;
+import org.apache.hadoop.hdfs.protocol.SnapshottableDirectoryStatus;
 import org.apache.hadoop.security.AccessControlException;
 
 /**
@@ -169,6 +170,18 @@ public class HdfsAdmin {
    */
   public void disallowSnapshot(Path path) throws IOException {
     dfs.disallowSnapshot(path);
+  }
+
+  /**
+   * List snapshottable directories. Incrementally fetches results from
+   * the server.
+   * @return A RemoteIterator which returns SnapshottableDirectoryStatus
+   *         objects.
+   * @throws IOException
+   */
+  public RemoteIterator<SnapshottableDirectoryStatus>
+      listSnapshottableDirectories() throws IOException {
+    return dfs.listSnapshottableDirectories();
   }
 
   /**

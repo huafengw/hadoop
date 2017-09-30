@@ -140,6 +140,7 @@ import org.apache.hadoop.hdfs.protocol.QuotaByStorageTypeExceededException;
 import org.apache.hadoop.hdfs.protocol.RollingUpgradeInfo;
 import org.apache.hadoop.hdfs.protocol.SnapshotAccessControlException;
 import org.apache.hadoop.hdfs.protocol.SnapshotDiffReport;
+import org.apache.hadoop.hdfs.protocol.SnapshottableDirStatusIterator;
 import org.apache.hadoop.hdfs.protocol.SnapshottableDirectoryStatus;
 import org.apache.hadoop.hdfs.protocol.UnresolvedPathException;
 import org.apache.hadoop.hdfs.protocol.datatransfer.DataTransferProtoUtil;
@@ -2281,6 +2282,19 @@ public class DFSClient implements java.io.Closeable, RemotePeerFactory,
     } catch (RemoteException re) {
       throw re.unwrapRemoteException();
     }
+  }
+
+  /**
+   * List snapshottable directories. Incrementally fetches results from
+   * the server.
+   * @return A RemoteIterator which returns SnapshottableDirectoryStatus
+   *         objects.
+   * @throws IOException
+   */
+  public RemoteIterator<SnapshottableDirectoryStatus>
+      listSnapshottableDirectories() throws IOException {
+    checkOpen();
+    return new SnapshottableDirStatusIterator(namenode, tracer);
   }
 
   /**

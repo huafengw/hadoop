@@ -89,7 +89,6 @@ import static org.apache.hadoop.hdfs.DFSConfigKeys.DFS_REPLICATION_DEFAULT;
 import static org.apache.hadoop.hdfs.DFSConfigKeys.DFS_REPLICATION_KEY;
 import static org.apache.hadoop.hdfs.DFSConfigKeys.DFS_SUPPORT_APPEND_DEFAULT;
 import static org.apache.hadoop.hdfs.DFSConfigKeys.DFS_SUPPORT_APPEND_KEY;
-import static org.apache.hadoop.hdfs.server.common.HdfsServerConstants.SECURITY_XATTR_UNREADABLE_BY_SUPERUSER;
 import static org.apache.hadoop.hdfs.server.namenode.FSDirStatAndListingOp.*;
 import org.apache.hadoop.hdfs.protocol.OpenFileEntry;
 import org.apache.hadoop.hdfs.server.protocol.SlowDiskReports;
@@ -147,8 +146,6 @@ import org.apache.hadoop.HadoopIllegalArgumentException;
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.crypto.CryptoProtocolVersion;
-import org.apache.hadoop.crypto.key.KeyProvider;
-import org.apache.hadoop.crypto.CryptoCodec;
 import org.apache.hadoop.crypto.key.KeyProvider.Metadata;
 import org.apache.hadoop.crypto.key.KeyProviderCryptoExtension;
 import org.apache.hadoop.hdfs.AddBlockFlag;
@@ -6074,7 +6071,26 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
     logAuditEvent(success, operationName, null, null, null);
     return status;
   }
-  
+
+  BatchedListEntries<SnapshottableDirectoryStatus>
+      listSnapshottableDirectories(Long prevID) throws IOException {
+    final String operationName = "listSnapshottableDirectories";
+    boolean success = false;
+    checkOperation(OperationCategory.READ);
+    readLock();
+    try {
+      checkOperation(OperationCategory.READ);
+      final BatchedListEntries<SnapshottableDirectoryStatus> ret =
+          FSDirSnapshotOp.listSnapshottableDirectories(
+              dir, snapshotManager, prevID);
+      success = true;
+      return ret;
+    } finally {
+      readUnlock(operationName);
+      logAuditEvent(success, operationName, null);
+    }
+  }
+
   /**
    * Get the difference between two snapshots (or between a snapshot and the
    * current status) of a snapshottable directory.

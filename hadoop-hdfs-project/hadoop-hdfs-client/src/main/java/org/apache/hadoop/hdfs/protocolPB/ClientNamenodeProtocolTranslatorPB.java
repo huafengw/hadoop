@@ -134,6 +134,8 @@ import org.apache.hadoop.hdfs.protocol.proto.ClientNamenodeProtocolProtos.ListCa
 import org.apache.hadoop.hdfs.protocol.proto.ClientNamenodeProtocolProtos.ListCorruptFileBlocksRequestProto;
 import org.apache.hadoop.hdfs.protocol.proto.ClientNamenodeProtocolProtos.ListOpenFilesRequestProto;
 import org.apache.hadoop.hdfs.protocol.proto.ClientNamenodeProtocolProtos.ListOpenFilesResponseProto;
+import org.apache.hadoop.hdfs.protocol.proto.ClientNamenodeProtocolProtos.ListSnapshottableDirRequestProto;
+import org.apache.hadoop.hdfs.protocol.proto.ClientNamenodeProtocolProtos.ListSnapshottableDirResponseProto;
 import org.apache.hadoop.hdfs.protocol.proto.ClientNamenodeProtocolProtos.MetaSaveRequestProto;
 import org.apache.hadoop.hdfs.protocol.proto.ClientNamenodeProtocolProtos.MkdirsRequestProto;
 import org.apache.hadoop.hdfs.protocol.proto.ClientNamenodeProtocolProtos.ModifyCacheDirectiveRequestProto;
@@ -167,6 +169,7 @@ import org.apache.hadoop.hdfs.protocol.proto.ClientNamenodeProtocolProtos.UnsetS
 import org.apache.hadoop.hdfs.protocol.proto.ClientNamenodeProtocolProtos.UpdateBlockForPipelineRequestProto;
 import org.apache.hadoop.hdfs.protocol.proto.ClientNamenodeProtocolProtos.UpdatePipelineRequestProto;
 import org.apache.hadoop.hdfs.protocol.proto.*;
+import org.apache.hadoop.hdfs.protocol.proto.HdfsProtos.SnapshottableDirectoryStatusProto;
 import org.apache.hadoop.hdfs.protocol.proto.EncryptionZonesProtos.CreateEncryptionZoneRequestProto;
 import org.apache.hadoop.hdfs.protocol.proto.EncryptionZonesProtos.EncryptionZoneProto;
 import org.apache.hadoop.hdfs.protocol.proto.EncryptionZonesProtos.GetEZForPathRequestProto;
@@ -1106,6 +1109,25 @@ public class ClientNamenodeProtocolTranslatorPB implements
         return PBHelperClient.convert(result.getSnapshottableDirList());
       }
       return null;
+    } catch (ServiceException e) {
+      throw ProtobufHelper.getRemoteException(e);
+    }
+  }
+
+  @Override
+  public BatchedEntries<SnapshottableDirectoryStatus>
+      listSnapshottableDirectories(Long prevID) throws IOException {
+    ListSnapshottableDirRequestProto req = ListSnapshottableDirRequestProto
+        .newBuilder().setPrevId(prevID).build();
+    try {
+      ListSnapshottableDirResponseProto result = rpcProxy
+          .listSnapshottableDirectories(null, req);
+      List<SnapshottableDirectoryStatus> elements =
+          Lists.newArrayListWithCapacity(result.getEntriesCount());
+      for (SnapshottableDirectoryStatusProto p : result.getEntriesList()) {
+        elements.add(PBHelperClient.convert(p));
+      }
+      return new BatchedListEntries<>(elements, result.getHasMore());
     } catch (ServiceException e) {
       throw ProtobufHelper.getRemoteException(e);
     }

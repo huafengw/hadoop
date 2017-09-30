@@ -18,6 +18,7 @@
 package org.apache.hadoop.hdfs.server.namenode;
 
 import org.apache.hadoop.HadoopIllegalArgumentException;
+import org.apache.hadoop.fs.BatchedRemoteIterator.BatchedListEntries;
 import org.apache.hadoop.fs.InvalidPathException;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.permission.FsAction;
@@ -138,8 +139,21 @@ class FSDirSnapshotOp {
     FSPermissionChecker pc = fsd.getPermissionChecker();
     fsd.readLock();
     try {
-      final String user = pc.isSuperUser()? null : pc.getUser();
+      final String user = pc.isSuperUser() ? null : pc.getUser();
       return snapshotManager.getSnapshottableDirListing(user);
+    } finally {
+      fsd.readUnlock();
+    }
+  }
+
+  static BatchedListEntries<SnapshottableDirectoryStatus>
+      listSnapshottableDirectories(FSDirectory fsd,
+      SnapshotManager snapshotManager, Long prevID) throws IOException {
+    FSPermissionChecker pc = fsd.getPermissionChecker();
+    fsd.readLock();
+    try {
+      final String user = pc.isSuperUser() ? null : pc.getUser();
+      return snapshotManager.listSnapshottableDirectories(user, prevID);
     } finally {
       fsd.readUnlock();
     }

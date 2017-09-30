@@ -146,6 +146,8 @@ import org.apache.hadoop.hdfs.protocol.proto.ClientNamenodeProtocolProtos.ListCo
 import org.apache.hadoop.hdfs.protocol.proto.ClientNamenodeProtocolProtos.ListCorruptFileBlocksResponseProto;
 import org.apache.hadoop.hdfs.protocol.proto.ClientNamenodeProtocolProtos.ListOpenFilesRequestProto;
 import org.apache.hadoop.hdfs.protocol.proto.ClientNamenodeProtocolProtos.ListOpenFilesResponseProto;
+import org.apache.hadoop.hdfs.protocol.proto.ClientNamenodeProtocolProtos.ListSnapshottableDirRequestProto;
+import org.apache.hadoop.hdfs.protocol.proto.ClientNamenodeProtocolProtos.ListSnapshottableDirResponseProto;
 import org.apache.hadoop.hdfs.protocol.proto.ClientNamenodeProtocolProtos.MetaSaveRequestProto;
 import org.apache.hadoop.hdfs.protocol.proto.ClientNamenodeProtocolProtos.MetaSaveResponseProto;
 import org.apache.hadoop.hdfs.protocol.proto.ClientNamenodeProtocolProtos.MkdirsRequestProto;
@@ -1158,6 +1160,25 @@ public class ClientNamenodeProtocolServerSideTranslatorPB implements
       } else {
         return NULL_GET_SNAPSHOTTABLE_DIR_LISTING_RESPONSE;
       }
+    } catch (IOException e) {
+      throw new ServiceException(e);
+    }
+  }
+
+  @Override
+  public ListSnapshottableDirResponseProto listSnapshottableDirectories(
+      RpcController controller, ListSnapshottableDirRequestProto request)
+      throws ServiceException {
+    try {
+      BatchedEntries<SnapshottableDirectoryStatus> entries = server
+          .listSnapshottableDirectories(request.getPrevId());
+      ListSnapshottableDirResponseProto.Builder builder =
+          ListSnapshottableDirResponseProto.newBuilder();
+      builder.setHasMore(entries.hasMore());
+      for (int i=0; i < entries.size(); i++) {
+        builder.addEntries(PBHelperClient.convert(entries.get(i)));
+      }
+      return builder.build();
     } catch (IOException e) {
       throw new ServiceException(e);
     }

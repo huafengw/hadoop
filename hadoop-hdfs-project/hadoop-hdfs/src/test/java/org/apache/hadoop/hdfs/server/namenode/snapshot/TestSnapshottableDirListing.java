@@ -17,14 +17,14 @@
  */
 package org.apache.hadoop.hdfs.server.namenode.snapshot;
 
+import static org.apache.hadoop.hdfs.DFSConfigKeys.DFS_NAMENODE_LIST_SNAPSHOTTABLE_DIRECTORIES_NUM_RESPONSES;
 import static org.apache.hadoop.hdfs.DFSConfigKeys.DFS_PERMISSIONS_SUPERUSERGROUP_DEFAULT;
 import static org.apache.hadoop.hdfs.DFSConfigKeys.DFS_PERMISSIONS_SUPERUSERGROUP_KEY;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Options.Rename;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.RemoteIterator;
 import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.hadoop.hdfs.DFSTestUtil;
 import org.apache.hadoop.hdfs.DistributedFileSystem;
@@ -33,8 +33,14 @@ import org.apache.hadoop.hdfs.protocol.SnapshottableDirectoryStatus;
 import org.apache.hadoop.hdfs.server.namenode.FSNamesystem;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.junit.After;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.io.IOException;
 
 public class TestSnapshottableDirListing {
 
@@ -54,6 +60,7 @@ public class TestSnapshottableDirListing {
   @Before
   public void setUp() throws Exception {
     conf = new Configuration();
+    conf.setInt(DFS_NAMENODE_LIST_SNAPSHOTTABLE_DIRECTORIES_NUM_RESPONSES, 2);
     cluster = new MiniDFSCluster.Builder(conf).numDataNodes(REPLICATION)
         .build();
     cluster.waitActive();
@@ -70,7 +77,118 @@ public class TestSnapshottableDirListing {
       cluster = null;
     }
   }
-  
+
+  public void assertNumDirs(final int numDirs) throws IOException {
+    RemoteIterator<SnapshottableDirectoryStatus> it =
+        hdfs.listSnapshottableDirectories();
+    int count = 0;
+    while (it.hasNext()) {
+      count++;
+      it.next();
+    }
+    assertEquals("Unexpected number of snapshottable directories!",
+        numDirs, count);
+  }
+
+  /**
+   * Test listing all the snapshottable directories using iterator
+   */
+  @Test (timeout=60000)
+  public void testListSnapshottableDirIt() throws Exception {
+    cluster.getNamesystem().getSnapshotManager().setAllowNestedSnapshots(true);
+
+    // Initially there is no snapshottable directories in the system
+    RemoteIterator<SnapshottableDirectoryStatus> it =
+        hdfs.listSnapshottableDirectories();
+    assertFalse(it.hasNext());
+
+    // Make root as snapshottable
+    final Path root = new Path("/");
+    hdfs.allowSnapshot(root);
+    it = hdfs.listSnapshottableDirectories();
+    assertTrue(it.hasNext());
+    SnapshottableDirectoryStatus status = it.next();
+    assertEquals("", status.getDirStatus().getLocalName());
+    assertEquals(root, status.getFullPath());
+    assertFalse(it.hasNext());
+
+    // Make root non-snaphsottable
+    hdfs.disallowSnapshot(root);
+    it = hdfs.listSnapshottableDirectories();
+    assertFalse(it.hasNext());
+
+    // Make dir1 as snapshottable
+    hdfs.allowSnapshot(dir1);
+    assertNumDirs(1);
+    it = hdfs.listSnapshottableDirectories();
+    status = it.next();
+    assertEquals(dir1.getName(), status.getDirStatus().getLocalName());
+    assertEquals(dir1, status.getFullPath());
+    // There is no snapshot for dir1 yet
+    assertEquals(0, status.getSnapshotNumber());
+
+    // Make dir2 as snapshottable
+    hdfs.allowSnapshot(dir2);
+    assertNumDirs(2);
+    it = hdfs.listSnapshottableDirectories();
+    status = it.next();
+    assertEquals(dir1.getName(), status.getDirStatus().getLocalName());
+    assertEquals(dir1, status.getFullPath());
+    status = it.next();
+    assertEquals(dir2.getName(), status.getDirStatus().getLocalName());
+    assertEquals(dir2, status.getFullPath());
+    // There is no snapshot for dir2 yet
+    assertEquals(0, status.getSnapshotNumber());
+
+    // Create dir3
+    final Path dir3 = new Path("/TestSnapshot3");
+    hdfs.mkdirs(dir3);
+    // Rename dir3 to dir2
+    hdfs.rename(dir3, dir2, Rename.OVERWRITE);
+    // Now we only have one snapshottable dir: dir1
+    assertNumDirs(1);
+    it = hdfs.listSnapshottableDirectories();
+    status = it.next();
+    assertEquals(dir1, status.getFullPath());
+
+    // Make dir2 snapshottable again
+    hdfs.allowSnapshot(dir2);
+    // Create a snapshot for dir2
+    hdfs.createSnapshot(dir2, "s1");
+    hdfs.createSnapshot(dir2, "s2");
+    assertNumDirs(2);
+    it = hdfs.listSnapshottableDirectories();
+    // There are now 2 snapshots for dir2
+    it.next();
+    status = it.next();
+    assertEquals(dir2, status.getFullPath());
+    assertEquals(2, status.getSnapshotNumber());
+
+    // Create sub-dirs under dir1
+    Path sub1 = new Path(dir1, "sub1");
+    Path file1 =  new Path(sub1, "file1");
+    Path sub2 = new Path(dir1, "sub2");
+    Path file2 =  new Path(sub2, "file2");
+    DFSTestUtil.createFile(hdfs, file1, BLOCKSIZE, REPLICATION, seed);
+    DFSTestUtil.createFile(hdfs, file2, BLOCKSIZE, REPLICATION, seed);
+    // Make sub1 and sub2 snapshottable
+    hdfs.allowSnapshot(sub1);
+    hdfs.allowSnapshot(sub2);
+    assertNumDirs(4);
+
+    // reset sub1
+    hdfs.disallowSnapshot(sub1);
+    assertNumDirs(3);
+
+    // Remove dir1, both dir1 and sub2 will be removed
+    hdfs.delete(dir1, true);
+    assertNumDirs(1);
+    it = hdfs.listSnapshottableDirectories();
+    status = it.next();
+    assertEquals(dir2.getName(), status.getDirStatus().getLocalName());
+    assertEquals(dir2, status.getFullPath());
+  }
+
   /**
    * Test listing all the snapshottable directories
    */
@@ -167,7 +285,7 @@ public class TestSnapshottableDirListing {
     assertEquals(dir2.getName(), dirs[0].getDirStatus().getLocalName());
     assertEquals(dir2, dirs[0].getFullPath());
   }
-  
+
   /**
    * Test the listing with different user names to make sure only directories
    * that are owned by the user are listed.

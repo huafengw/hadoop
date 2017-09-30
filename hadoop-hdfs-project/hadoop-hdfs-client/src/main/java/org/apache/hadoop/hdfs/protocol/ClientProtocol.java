@@ -684,6 +684,18 @@ public interface ClientProtocol {
   SnapshottableDirectoryStatus[] getSnapshottableDirListing()
       throws IOException;
 
+  /**
+   * List the snapshottable directories. Incrementally fetches results from
+   * the server.
+   *
+   * @param prevID file id of last directory listed. If there is no
+   *               previous batch, a negative value can be used.
+   * @return A batch of SnapshottableDirectoryStatus objects.
+   */
+  @Idempotent
+  BatchedEntries<SnapshottableDirectoryStatus>
+      listSnapshottableDirectories(Long prevID) throws IOException;
+
   ///////////////////////////////////////
   // System issues and management
   ///////////////////////////////////////

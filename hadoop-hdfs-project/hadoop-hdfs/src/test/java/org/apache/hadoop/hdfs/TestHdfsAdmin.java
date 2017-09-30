@@ -19,6 +19,7 @@ package org.apache.hadoop.hdfs;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
@@ -41,6 +42,7 @@ import org.apache.hadoop.fs.RemoteIterator;
 import org.apache.hadoop.hdfs.client.HdfsAdmin;
 import org.apache.hadoop.hdfs.protocol.BlockStoragePolicy;
 import org.apache.hadoop.hdfs.protocol.OpenFileEntry;
+import org.apache.hadoop.hdfs.protocol.SnapshottableDirectoryStatus;
 import org.apache.hadoop.hdfs.server.blockmanagement.BlockStoragePolicySuite;
 import org.junit.After;
 import org.junit.Assert;
@@ -73,6 +75,27 @@ public class TestHdfsAdmin {
       cluster.shutdown();
       cluster = null;
     }
+  }
+
+  @Test
+  public void testSnapshotDirs() throws Exception {
+    HdfsAdmin hdfsAdmin = new HdfsAdmin(FileSystem.getDefaultUri(conf), conf);
+    FileSystem fs = FileSystem.get(conf);
+    RemoteIterator<SnapshottableDirectoryStatus> it =
+        hdfsAdmin.listSnapshottableDirectories();
+    assertFalse(it.hasNext());
+
+    fs.mkdirs(TEST_PATH);
+    hdfsAdmin.allowSnapshot(TEST_PATH);
+    it = hdfsAdmin.listSnapshottableDirectories();
+    assertTrue(it.hasNext());
+    SnapshottableDirectoryStatus status = it.next();
+    assertEquals(status.getFullPath(), TEST_PATH);
+    assertFalse(it.hasNext());
+
+    hdfsAdmin.disallowSnapshot(TEST_PATH);
+    it = hdfsAdmin.listSnapshottableDirectories();
+    assertFalse(it.hasNext());
   }
 
   /**
@@ -180,10 +203,8 @@ public class TestHdfsAdmin {
       policyNamesSet2.add(policy.getName());
     }
     // Ensure that we got the same set of policies in both cases.
-    Assert.assertTrue(
-        Sets.difference(policyNamesSet1, policyNamesSet2).isEmpty());
-    Assert.assertTrue(
-        Sets.difference(policyNamesSet2, policyNamesSet1).isEmpty());
+    assertTrue(Sets.difference(policyNamesSet1, policyNamesSet2).isEmpty());
+    assertTrue(Sets.difference(policyNamesSet2, policyNamesSet1).isEmpty());
   }
 
   private static String getKeyProviderURI() {
@@ -198,7 +219,7 @@ public class TestHdfsAdmin {
   @Test
   public void testGetKeyProvider() throws IOException {
     HdfsAdmin hdfsAdmin = new HdfsAdmin(FileSystem.getDefaultUri(conf), conf);
-    Assert.assertNull("should return null for an non-encrypted cluster",
+    assertNull("should return null for an non-encrypted cluster",
         hdfsAdmin.getKeyProvider());
 
     shutDownCluster();
