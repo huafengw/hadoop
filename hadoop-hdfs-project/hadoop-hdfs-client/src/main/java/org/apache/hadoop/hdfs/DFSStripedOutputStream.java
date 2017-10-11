@@ -198,7 +198,7 @@ public class DFSStripedOutputStream extends DFSOutputStream
     private final ByteBuffer[] buffers;
     private final byte[][] checksumArrays;
 
-    CellBuffers(int numParityBlocks) {
+    CellBuffers(int numParityBlocks) throws InterruptedException{
       if (cellSize % bytesPerChecksum != 0) {
         throw new HadoopIllegalArgumentException("Invalid values: "
             + HdfsClientConfigKeys.DFS_BYTES_PER_CHECKSUM_KEY + " (="
@@ -304,7 +304,12 @@ public class DFSStripedOutputStream extends DFSOutputStream
         ecPolicy.getCodecName(), coderOptions);
 
     coordinator = new Coordinator(numAllBlocks);
-    cellBuffers = new CellBuffers(numParityBlocks);
+    try {
+      cellBuffers = new CellBuffers(numParityBlocks);
+    } catch (InterruptedException ie) {
+      throw DFSUtilClient.toInterruptedIOException(
+          "Failed to create cell buffers", ie);
+    }
 
     streamers = new ArrayList<>(numAllBlocks);
     for (short i = 0; i < numAllBlocks; i++) {
@@ -372,7 +377,7 @@ public class DFSStripedOutputStream extends DFSOutputStream
    */
   private Set<StripedDataStreamer> checkStreamers() throws IOException {
     Set<StripedDataStreamer> newFailed = new HashSet<>();
-    for (StripedDataStreamer s : streamers) {
+    for(StripedDataStreamer s : streamers) {
       if (!s.isHealthy() && !failedStreamers.contains(s)) {
         newFailed.add(s);
       }
