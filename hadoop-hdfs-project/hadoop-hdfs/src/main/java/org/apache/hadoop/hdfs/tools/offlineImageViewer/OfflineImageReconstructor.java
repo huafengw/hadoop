@@ -17,6 +17,7 @@
  */
 package org.apache.hadoop.hdfs.tools.offlineImageViewer;
 
+import com.google.common.base.Preconditions;
 import static org.apache.hadoop.hdfs.server.namenode.FSImageFormatPBINode.ACL_ENTRY_NAME_MASK;
 import static org.apache.hadoop.hdfs.server.namenode.FSImageFormatPBINode.ACL_ENTRY_NAME_OFFSET;
 import static org.apache.hadoop.hdfs.server.namenode.FSImageFormatPBINode.ACL_ENTRY_SCOPE_OFFSET;
@@ -524,19 +525,36 @@ class OfflineImageReconstructor {
         }
 
         Node schema = ec.removeChild(ERASURE_CODING_SECTION_SCHEMA);
-        if (schema != null) {
-          ECSchemaProto.Builder schemaBuilder = ECSchemaProto.newBuilder();
-          String codecName =
-              schema.removeChildStr(ERASURE_CODING_SECTION_SCHEMA_CODEC_NAME);
-          schemaBuilder.setCodecName(codecName);
-          Integer dataUnits =
-              schema.removeChildInt(ERASURE_CODING_SECTION_SCHEMA_DATA_UNITS);
-          schemaBuilder.setDataUnits(dataUnits);
-          Integer parityUnits = schema.
-              removeChildInt(ERASURE_CODING_SECTION_SCHEMA_PARITY_UNITS);
-          schemaBuilder.setParityUnits(parityUnits);
-          policyBuilder.setSchema(schemaBuilder.build());
+        Preconditions.checkNotNull(schema);
+
+        ECSchemaProto.Builder schemaBuilder = ECSchemaProto.newBuilder();
+        String codecName =
+            schema.removeChildStr(ERASURE_CODING_SECTION_SCHEMA_CODEC_NAME);
+        schemaBuilder.setCodecName(codecName);
+        Integer dataUnits =
+            schema.removeChildInt(ERASURE_CODING_SECTION_SCHEMA_DATA_UNITS);
+        schemaBuilder.setDataUnits(dataUnits);
+        Integer parityUnits = schema.
+            removeChildInt(ERASURE_CODING_SECTION_SCHEMA_PARITY_UNITS);
+        schemaBuilder.setParityUnits(parityUnits);
+        Node options = schema
+            .removeChild(ERASURE_CODING_SECTION_SCHEMA_OPTIONS);
+        if (options != null) {
+          while (true) {
+            Node option =
+                options.removeChild(ERASURE_CODING_SECTION_SCHEMA_OPTION);
+            if (option == null) {
+              break;
+            }
+            String key = option
+                .removeChildStr(ERASURE_CODING_SECTION_SCHEMA_OPTION_KEY);
+            String value = option
+                .removeChildStr(ERASURE_CODING_SECTION_SCHEMA_OPTION_VALUE);
+            schemaBuilder.addOptions(HdfsProtos.ECSchemaOptionEntryProto
+                .newBuilder().setKey(key).setValue(value).build());
+          }
         }
+        policyBuilder.setSchema(schemaBuilder.build());
 
         builder.addPolicies(policyBuilder.build());
       }

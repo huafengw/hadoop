@@ -131,6 +131,14 @@ public final class PBImageXmlWriter {
       "dataUnits";
   public static final String ERASURE_CODING_SECTION_SCHEMA_PARITY_UNITS =
       "parityUnits";
+  public static final String ERASURE_CODING_SECTION_SCHEMA_OPTIONS =
+      "extraOptions";
+  public static final String ERASURE_CODING_SECTION_SCHEMA_OPTION =
+      "option";
+  public static final String ERASURE_CODING_SECTION_SCHEMA_OPTION_KEY =
+      "key";
+  public static final String ERASURE_CODING_SECTION_SCHEMA_OPTION_VALUE =
+      "value";
 
   public static final String INODE_SECTION_LAST_INODE_ID = "lastInodeId";
   public static final String INODE_SECTION_NUM_INODES = "numInodes";
@@ -555,12 +563,14 @@ public final class PBImageXmlWriter {
 
   private void dumpErasureCodingSection(InputStream in) throws IOException {
     ErasureCodingSection s = ErasureCodingSection.parseDelimitedFrom(in);
-    out.println("<" + ERASURE_CODING_SECTION_NAME + ">");
-    for (int i = 0; i < s.getPoliciesCount(); ++i) {
-      HdfsProtos.ErasureCodingPolicyProto policy = s.getPolicies(i);
-      dumpErasureCodingPolicy(policy);
+    if (s.getPoliciesCount() > 0) {
+      out.println("<" + ERASURE_CODING_SECTION_NAME + ">");
+      for (int i = 0; i < s.getPoliciesCount(); ++i) {
+        HdfsProtos.ErasureCodingPolicyProto policy = s.getPolicies(i);
+        dumpErasureCodingPolicy(policy);
+      }
+      out.println("</" + ERASURE_CODING_SECTION_NAME + ">\n");
     }
-    out.println("</" + ERASURE_CODING_SECTION_NAME + ">\n");
   }
 
   private void dumpErasureCodingPolicy(
@@ -574,7 +584,19 @@ public final class PBImageXmlWriter {
     HdfsProtos.ECSchemaProto schemaProto = ecPolicy.getSchema();
     o(ERASURE_CODING_SECTION_SCHEMA_CODEC_NAME, schemaProto.getCodecName());
     o(ERASURE_CODING_SECTION_SCHEMA_DATA_UNITS, schemaProto.getDataUnits());
-    o(ERASURE_CODING_SECTION_SCHEMA_PARITY_UNITS, schemaProto.getParityUnits());
+    o(ERASURE_CODING_SECTION_SCHEMA_PARITY_UNITS,
+        schemaProto.getParityUnits());
+    if (schemaProto.getOptionsCount() > 0) {
+      out.println("<" + ERASURE_CODING_SECTION_SCHEMA_OPTIONS + ">");
+      for (HdfsProtos.ECSchemaOptionEntryProto option:
+          schemaProto.getOptionsList()) {
+        out.println("<" + ERASURE_CODING_SECTION_SCHEMA_OPTION + ">");
+        o(ERASURE_CODING_SECTION_SCHEMA_OPTION_KEY, option.getKey());
+        o(ERASURE_CODING_SECTION_SCHEMA_OPTION_VALUE, option.getValue());
+        out.println("</" + ERASURE_CODING_SECTION_SCHEMA_OPTION + ">");
+      }
+      out.println("</" + ERASURE_CODING_SECTION_SCHEMA_OPTIONS + ">");
+    }
     out.println("</" + ERASURE_CODING_SECTION_SCHEMA + ">");
     out.println("</" + ERASURE_CODING_SECTION_POLICY + ">\n");
   }

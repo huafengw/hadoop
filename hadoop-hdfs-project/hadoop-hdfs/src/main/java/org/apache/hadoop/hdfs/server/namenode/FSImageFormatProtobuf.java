@@ -591,27 +591,15 @@ public final class FSImageFormatProtobuf {
       ArrayList<ErasureCodingPolicyProto> ecPolicyProtoes =
           new ArrayList<ErasureCodingPolicyProto>();
       for (ErasureCodingPolicy p : ecPolicies) {
-        ecPolicyProtoes.add(convertErasureCodingPolicy(p));
+        // Here we don't use PBHelperClient.convertErasureCodingPolicy because
+        // it will omit fields for built-in policies.
+        ecPolicyProtoes.add(PBHelperClient.convertErasureCodingPolicyFully(p));
       }
 
       ErasureCodingSection section = ErasureCodingSection.newBuilder().
           addAllPolicies(ecPolicyProtoes).build();
       section.writeDelimitedTo(sectionOutputStream);
       commitSection(summary, SectionName.ERASURE_CODING);
-    }
-
-    // Here we don't use PBHelperClient.convertErasureCodingPolicy because
-    // it will omit fields for built-in policies.
-    private ErasureCodingPolicyProto convertErasureCodingPolicy(
-        ErasureCodingPolicy policy) {
-      ErasureCodingPolicyProto.Builder builder = ErasureCodingPolicyProto
-          .newBuilder()
-          .setId(policy.getId())
-          .setName(policy.getName())
-          .setSchema(PBHelperClient.convertECSchema(policy.getSchema()))
-          .setCellSize(policy.getCellSize())
-          .setState(PBHelperClient.convertECState(policy.getState()));
-      return builder.build();
     }
 
     private void saveNameSystemSection(FileSummary.Builder summary)

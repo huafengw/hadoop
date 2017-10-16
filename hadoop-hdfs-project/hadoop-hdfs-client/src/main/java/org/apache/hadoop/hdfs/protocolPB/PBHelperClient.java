@@ -2964,6 +2964,19 @@ public class PBHelperClient {
     return policy;
   }
 
+  // This convert call will not omit fields for built-in policy
+  public static ErasureCodingPolicyProto convertErasureCodingPolicyFully(
+      ErasureCodingPolicy policy) {
+    ErasureCodingPolicyProto.Builder builder = ErasureCodingPolicyProto
+        .newBuilder()
+        .setId(policy.getId())
+        .setName(policy.getName())
+        .setSchema(PBHelperClient.convertECSchema(policy.getSchema()))
+        .setCellSize(policy.getCellSize())
+        .setState(PBHelperClient.convertECState(policy.getState()));
+    return builder.build();
+  }
+
   public static ErasureCodingPolicyProto convertErasureCodingPolicy(
       ErasureCodingPolicy policy) {
     ErasureCodingPolicyProto.Builder builder = ErasureCodingPolicyProto
