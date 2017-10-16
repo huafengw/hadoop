@@ -591,7 +591,9 @@ public final class FSImageFormatProtobuf {
       ArrayList<ErasureCodingPolicyProto> ecPolicyProtoes =
           new ArrayList<ErasureCodingPolicyProto>();
       for (ErasureCodingPolicy p : ecPolicies) {
-        ecPolicyProtoes.add(PBHelperClient.convertErasureCodingPolicy(p));
+        // Here we don't use PBHelperClient.convertErasureCodingPolicy because
+        // it will omit fields for built-in policies.
+        ecPolicyProtoes.add(PBHelperClient.convertErasureCodingPolicyFully(p));
       }
 
       ErasureCodingSection section = ErasureCodingSection.newBuilder().
