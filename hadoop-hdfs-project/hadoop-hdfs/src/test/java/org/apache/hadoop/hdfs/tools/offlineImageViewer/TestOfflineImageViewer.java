@@ -35,7 +35,7 @@ import static org.apache.hadoop.hdfs.tools.offlineImageViewer.PBImageXmlWriter.E
 import static org.apache.hadoop.hdfs.tools.offlineImageViewer.PBImageXmlWriter.ERASURE_CODING_SECTION_POLICY_STATE;
 import static org.apache.hadoop.hdfs.tools.offlineImageViewer.PBImageXmlWriter.ERASURE_CODING_SECTION_SCHEMA;
 import static org.apache.hadoop.hdfs.tools.offlineImageViewer.PBImageXmlWriter.ERASURE_CODING_SECTION_SCHEMA_CODEC_NAME;
-import static org.apache.hadoop.hdfs.tools.offlineImageViewer.PBImageXmlWriter.ERASURE_CODING_SECTION_SCHEMA_OPTIONS;
+import static org.apache.hadoop.hdfs.tools.offlineImageViewer.PBImageXmlWriter.ERASURE_CODING_SECTION_SCHEMA_OPTION;
 import org.apache.hadoop.io.erasurecode.ECSchema;
 import org.apache.hadoop.io.erasurecode.ErasureCodeConstants;
 import static org.junit.Assert.assertEquals;
@@ -109,6 +109,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
@@ -169,6 +170,7 @@ public class TestOfflineImageViewer {
       AddErasureCodingPolicyResponse[] responses =
           hdfs.addErasureCodingPolicies(new ErasureCodingPolicy[]{policy});
       addedErasureCodingPolicyName = responses[0].getPolicy().getName();
+      hdfs.enableErasureCodingPolicy(addedErasureCodingPolicyName);
 
       // Create a reasonable namespace
       for (int i = 0; i < NUM_DIRS; i++, dirCount++) {
@@ -839,6 +841,24 @@ public class TestOfflineImageViewer {
     }
   }
 
+  private static String getXmlString(Element element, String name) {
+    NodeList id = element.getElementsByTagName(name);
+    Element line = (Element) id.item(0);
+    if (line == null) {
+      return "";
+    }
+    Node first = line.getFirstChild();
+    // handle empty <key></key>
+    if (first == null) {
+      return "";
+    }
+    String val = first.getNodeValue();
+    if (val == null) {
+      return "";
+    }
+    return val;
+  }
+
   @Test
   public void testOfflineImageViewerForECPolicies() throws Exception {
     ByteArrayOutputStream output = new ByteArrayOutputStream();
@@ -860,27 +880,30 @@ public class TestOfflineImageViewer {
         policies.getLength());
     for (int i = 0; i < policies.getLength(); i++) {
       Element policy = (Element) policies.item(i);
-      String name = policy.getAttribute(ERASURE_CODING_SECTION_POLICY_NAME);
+      String name = getXmlString(policy, ERASURE_CODING_SECTION_POLICY_NAME);
       if (name.equals(addedErasureCodingPolicyName)) {
         String cellSize =
-            policy.getAttribute(ERASURE_CODING_SECTION_POLICY_CELL_SIZE);
+            getXmlString(policy, ERASURE_CODING_SECTION_POLICY_CELL_SIZE);
         assertEquals("1024", cellSize);
         String state =
-            policy.getAttribute(ERASURE_CODING_SECTION_POLICY_STATE);
-        assertEquals(ErasureCodingPolicyState.DISABLED.toString(), state);
+            getXmlString(policy, ERASURE_CODING_SECTION_POLICY_STATE);
+        assertEquals(ErasureCodingPolicyState.ENABLED.toString(), state);
 
         Element schema = (Element) policy
             .getElementsByTagName(ERASURE_CODING_SECTION_SCHEMA).item(0);
         String codecName =
-            schema.getAttribute(ERASURE_CODING_SECTION_SCHEMA_CODEC_NAME);
+            getXmlString(schema, ERASURE_CODING_SECTION_SCHEMA_CODEC_NAME);
         assertEquals(ErasureCodeConstants.RS_CODEC_NAME, codecName);
 
         NodeList options =
-            schema.getElementsByTagName(ERASURE_CODING_SECTION_SCHEMA_OPTIONS);
+            schema.getElementsByTagName(ERASURE_CODING_SECTION_SCHEMA_OPTION);
         assertEquals(2, options.getLength());
         Element option1 = (Element) options.item(0);
-        assertEquals("k1", option1.getAttribute("key"));
-        assertEquals("v1", option1.getAttribute("value"));
+        assertEquals("k1", getXmlString(option1, "key"));
+        assertEquals("v1", getXmlString(option1, "value"));
+        Element option2 = (Element) options.item(1);
+        assertEquals("k2", getXmlString(option2, "key"));
+        assertEquals("v2", getXmlString(option2, "value"));
       }
     }
   }

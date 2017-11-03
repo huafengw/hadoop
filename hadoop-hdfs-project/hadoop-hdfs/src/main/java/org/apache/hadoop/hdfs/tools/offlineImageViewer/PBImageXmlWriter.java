@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.Map;
 import java.util.TimeZone;
 
 import com.google.protobuf.ByteString;
@@ -36,12 +37,15 @@ import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.permission.AclEntry;
 import org.apache.hadoop.fs.permission.PermissionStatus;
+import org.apache.hadoop.hdfs.protocol.ErasureCodingPolicy;
+import org.apache.hadoop.hdfs.protocol.ErasureCodingPolicyInfo;
 import org.apache.hadoop.hdfs.protocol.proto.ClientNamenodeProtocolProtos.CacheDirectiveInfoExpirationProto;
 import org.apache.hadoop.hdfs.protocol.proto.ClientNamenodeProtocolProtos.CacheDirectiveInfoProto;
 import org.apache.hadoop.hdfs.protocol.proto.ClientNamenodeProtocolProtos.CachePoolInfoProto;
 import org.apache.hadoop.hdfs.protocol.proto.HdfsProtos;
 import org.apache.hadoop.hdfs.protocol.proto.HdfsProtos.BlockProto;
 import org.apache.hadoop.hdfs.protocol.proto.XAttrProtos;
+import org.apache.hadoop.hdfs.protocolPB.PBHelperClient;
 import org.apache.hadoop.hdfs.server.namenode.FSImageFormatPBINode;
 import org.apache.hadoop.hdfs.server.namenode.FSImageFormatProtobuf.SectionName;
 import org.apache.hadoop.hdfs.server.namenode.FSImageUtil;
@@ -62,6 +66,7 @@ import org.apache.hadoop.hdfs.server.namenode.FsImageProto.SnapshotSection;
 import org.apache.hadoop.hdfs.server.namenode.FsImageProto.StringTableSection;
 import org.apache.hadoop.hdfs.server.namenode.INodeFile;
 import org.apache.hadoop.hdfs.util.XMLUtils;
+import org.apache.hadoop.io.erasurecode.ECSchema;
 import org.apache.hadoop.util.LimitInputStream;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -567,29 +572,30 @@ public final class PBImageXmlWriter {
       out.println("<" + ERASURE_CODING_SECTION_NAME + ">");
       for (int i = 0; i < s.getPoliciesCount(); ++i) {
         HdfsProtos.ErasureCodingPolicyProto policy = s.getPolicies(i);
-        dumpErasureCodingPolicy(policy);
+        dumpErasureCodingPolicy(PBHelperClient
+            .convertErasureCodingPolicyInfo(policy));
       }
       out.println("</" + ERASURE_CODING_SECTION_NAME + ">\n");
     }
   }
 
-  private void dumpErasureCodingPolicy(
-      HdfsProtos.ErasureCodingPolicyProto ecPolicy) {
+  private void dumpErasureCodingPolicy(ErasureCodingPolicyInfo ecPolicyInfo) {
+    ErasureCodingPolicy ecPolicy = ecPolicyInfo.getPolicy();
     out.println("<" + ERASURE_CODING_SECTION_POLICY + ">");
     o(ERASURE_CODING_SECTION_POLICY_ID, ecPolicy.getId());
     o(ERASURE_CODING_SECTION_POLICY_NAME, ecPolicy.getName());
     o(ERASURE_CODING_SECTION_POLICY_CELL_SIZE, ecPolicy.getCellSize());
-    o(ERASURE_CODING_SECTION_POLICY_STATE, ecPolicy.getState());
+    o(ERASURE_CODING_SECTION_POLICY_STATE, ecPolicyInfo.getState());
     out.println("<" + ERASURE_CODING_SECTION_SCHEMA + ">");
-    HdfsProtos.ECSchemaProto schemaProto = ecPolicy.getSchema();
-    o(ERASURE_CODING_SECTION_SCHEMA_CODEC_NAME, schemaProto.getCodecName());
-    o(ERASURE_CODING_SECTION_SCHEMA_DATA_UNITS, schemaProto.getDataUnits());
+    ECSchema schema = ecPolicy.getSchema();
+    o(ERASURE_CODING_SECTION_SCHEMA_CODEC_NAME, schema.getCodecName());
+    o(ERASURE_CODING_SECTION_SCHEMA_DATA_UNITS, schema.getNumDataUnits());
     o(ERASURE_CODING_SECTION_SCHEMA_PARITY_UNITS,
-        schemaProto.getParityUnits());
-    if (schemaProto.getOptionsCount() > 0) {
+        schema.getNumParityUnits());
+    if (schema.getExtraOptions().size() > 0) {
       out.println("<" + ERASURE_CODING_SECTION_SCHEMA_OPTIONS + ">");
-      for (HdfsProtos.ECSchemaOptionEntryProto option:
-          schemaProto.getOptionsList()) {
+      for (Map.Entry<String, String> option :
+          schema.getExtraOptions().entrySet()) {
         out.println("<" + ERASURE_CODING_SECTION_SCHEMA_OPTION + ">");
         o(ERASURE_CODING_SECTION_SCHEMA_OPTION_KEY, option.getKey());
         o(ERASURE_CODING_SECTION_SCHEMA_OPTION_VALUE, option.getValue());
